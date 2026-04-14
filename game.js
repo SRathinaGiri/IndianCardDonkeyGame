@@ -30,7 +30,8 @@ const state = {
         'Diamonds': false,
         'Clubs': false,
         'Spades': false
-    } // Track which suits have been cut by someone
+    }, // Track which suits have been cut by someone
+    discardPile: [] // Cards that have been cleared from tricks
 };
 
 // Card definitions
@@ -143,6 +144,7 @@ function initGame() {
         'Clubs': false,
         'Spades': false
     };
+    state.discardPile = [];
 
     document.getElementById('setup-screen').classList.add('hidden');
     document.getElementById('game-screen').classList.remove('hidden');
@@ -263,14 +265,32 @@ function resolveTurn() {
 
     // If cut happened, or everyone has played
     if (state.isCut || state.centerPile.length === activePlayersCount) {
-        resolveTrick();
+        prepareTrickResolution();
     } else {
         // Next player's turn
         advanceTurn();
     }
 }
 
-function resolveTrick() {
+function prepareTrickResolution() {
+    // Determine winner/taker
+    if (state.isCut) {
+        const takerIndex = state.players.findIndex(p => p.id === state.winnerOfTrick);
+        updateStatus(`${state.players[takerIndex].name} takes the pile!`);
+    } else {
+        const winnerIndex = state.players.findIndex(p => p.id === state.winnerOfTrick);
+        updateStatus(`${state.players[winnerIndex].name} won the trick`);
+    }
+
+    // Show continue button to pause before clearing the table
+    if (state.fastMode) {
+        executeTrickResolution();
+    } else {
+        document.getElementById('continue-btn').classList.remove('hidden');
+    }
+}
+
+function executeTrickResolution() {
     if (state.isCut) {
         // Trick taken by winnerOfTrick
         const takerIndex = state.players.findIndex(p => p.id === state.winnerOfTrick);
@@ -287,15 +307,16 @@ function resolveTrick() {
         }
 
         playSound('draw');
-        updateStatus(`${taker.name} took the pile!`);
 
         // Taker starts next round
         state.currentTurnIndex = takerIndex;
     } else {
-        // Trick cleared
+        // Trick cleared - add to discard pile
+        for (let item of state.centerPile) {
+            state.discardPile.push(item.card);
+        }
         playSound('meld');
         const winnerIndex = state.players.findIndex(p => p.id === state.winnerOfTrick);
-        updateStatus(`${state.players[winnerIndex].name} won the trick`);
 
         // Winner starts next round
         state.currentTurnIndex = winnerIndex;
@@ -315,32 +336,22 @@ function resolveTrick() {
 
     renderGame();
 
-    if (state.fastMode && state.players[state.currentTurnIndex].isBot) {
-        if (!state.gameOver) {
-            playBotTurn();
-        }
-    } else {
-        document.getElementById('continue-btn').classList.remove('hidden');
-        // If next is bot, click continue automatically after delay
-        if (state.players[state.currentTurnIndex].isBot) {
-            setTimeout(() => {
-                if (!state.gameOver) {
-                    document.getElementById('continue-btn').click();
-                }
-            }, state.fastMode ? 0 : 1500);
+    if (!state.gameOver) {
+        const currentPlayer = state.players[state.currentTurnIndex];
+        updateStatus(`${currentPlayer.name}'s turn`);
+        if (currentPlayer.isBot) {
+            if (state.fastMode) {
+                playBotTurn();
+            } else {
+                setTimeout(playBotTurn, 1000);
+            }
         }
     }
 }
 
 document.getElementById('continue-btn').addEventListener('click', () => {
     document.getElementById('continue-btn').classList.add('hidden');
-    if (!state.gameOver) {
-        const currentPlayer = state.players[state.currentTurnIndex];
-        updateStatus(`${currentPlayer.name}'s turn`);
-        if (currentPlayer.isBot) {
-            playBotTurn();
-        }
-    }
+    executeTrickResolution();
 });
 
 function advanceTurn() {
@@ -384,12 +395,35 @@ function checkGameOver() {
     }
 }
 
-// UI Rendering (Stubs for now)
+// UI Rendering
 function renderGame() {
     renderOpponents();
     renderPlayerHand();
     renderCenterPile();
+    renderDiscardPile();
     updateActivePlayer();
+}
+
+function renderDiscardPile() {
+    const discardArea = document.getElementById('discard-area');
+    discardArea.innerHTML = '';
+
+    // To prevent DOM overload, only render top few cards if there are many
+    const maxRender = 10;
+    const startIndex = Math.max(0, state.discardPile.length - maxRender);
+
+    for (let i = startIndex; i < state.discardPile.length; i++) {
+        const card = state.discardPile[i];
+        const cardEl = createCardElement(card);
+
+        // Random rotation and slight offset for messy pile look
+        const rotation = (Math.random() * 30) - 15;
+        const offsetX = (Math.random() * 10) - 5;
+        const offsetY = (Math.random() * 10) - 5;
+
+        cardEl.style.transform = `rotate(${rotation}deg) translate(${offsetX}px, ${offsetY}px)`;
+        discardArea.appendChild(cardEl);
+    }
 }
 
 function createCardElement(card, isHidden = false) {
@@ -477,17 +511,47 @@ function renderPlayerHand() {
 
     playerHand.innerHTML = '';
 
+    // Dynamic overlap calculation to prevent scrolling
+    const containerWidth = Math.min(window.innerWidth - 40, 1000); // Approximate usable width
+    const cardWidth = 106;
+    const numCards = player.hand.length;
+
+    let overlapMargin = -50; // Default overlap
+
+    if (numCards > 1) {
+        // Required width if no overlap: numCards * cardWidth
+        // Available width: containerWidth
+        // Total overlap needed: (numCards * cardWidth) - containerWidth
+        // Overlap per card (excluding first): Total overlap / (numCards - 1)
+        const totalOverlapNeeded = (numCards * cardWidth) - containerWidth;
+        if (totalOverlapNeeded > 0) {
+            const calculatedOverlap = -(totalOverlapNeeded / (numCards - 1));
+            // Cap the overlap so cards don't completely hide each other (e.g., max overlap 85px)
+            overlapMargin = Math.max(calculatedOverlap, -85);
+        } else {
+            // Cards fit without overlap, or just use a nice default small overlap
+            overlapMargin = -20;
+        }
+    }
+
     for (let i = 0; i < player.hand.length; i++) {
         const card = player.hand[i];
         const cardEl = createCardElement(card);
 
+        if (i > 0) {
+            cardEl.style.marginLeft = `${overlapMargin}px`;
+        } else {
+            cardEl.style.marginLeft = '0px';
+        }
+
+        const isWaitingForContinue = !document.getElementById('continue-btn').classList.contains('hidden');
         const valid = isValidPlay(player, card);
-        if (!valid && state.currentTurnIndex === 0) {
+        if ((!valid && state.currentTurnIndex === 0) || isWaitingForContinue) {
             cardEl.classList.add('disabled');
         } else if (valid && state.currentTurnIndex === 0) {
             cardEl.classList.add('playable');
             cardEl.addEventListener('click', () => {
-                if (state.currentTurnIndex === 0 && !state.animationsPlaying) {
+                if (state.currentTurnIndex === 0 && !state.animationsPlaying && document.getElementById('continue-btn').classList.contains('hidden')) {
                     playCard(0, i);
                 }
             });
