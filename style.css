@@ -230,19 +230,20 @@ button:disabled {
 
 #status-message {
     position: absolute;
-    bottom: 200px; /* Positioned below center pile, above player hand */
+    bottom: 180px; /* Positioned right above player hand */
     left: 50%;
     transform: translateX(-50%);
     background: rgba(0, 0, 0, 0.8);
-    padding: 15px 30px;
-    border-radius: 15px;
-    font-size: 1.8rem;
+    padding: 15px 40px;
+    border-radius: 20px;
+    font-size: 2.5rem;
     font-weight: bold;
     color: #ffd700;
     text-align: center;
     z-index: 20;
-    border: 2px solid #ffd700;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.6);
+    border: 3px solid #ffd700;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.8);
+    text-shadow: 2px 2px 4px #000;
 }
 
 #center-pile {
@@ -273,13 +274,12 @@ button:disabled {
 }
 
 #continue-btn {
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
+    position: absolute;
+    bottom: 180px; /* Just above the player hand */
+    right: 20px;
     z-index: 9999;
-    padding: 20px 40px;
-    font-size: 2rem;
+    padding: 15px 30px;
+    font-size: 1.5rem;
     background-color: #e74c3c;
     color: white;
     border: 4px solid #c0392b;
@@ -294,9 +294,9 @@ button:disabled {
 }
 
 @keyframes pulse {
-    0% { transform: translate(-50%, -50%) scale(1); }
-    50% { transform: translate(-50%, -50%) scale(1.05); }
-    100% { transform: translate(-50%, -50%) scale(1); }
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
 }
 
 /* Player Area */
