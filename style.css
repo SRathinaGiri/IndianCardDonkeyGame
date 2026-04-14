@@ -150,19 +150,34 @@ button:disabled {
 
 .opponent-name {
     font-weight: bold;
-    margin-bottom: 5px;
+    margin-bottom: 10px;
+    position: relative;
+    display: inline-block;
+    padding-right: 25px; /* Space for the badge */
+}
+
+.opponent-card-count {
+    position: absolute;
+    top: -8px;
+    right: 0;
+    background-color: #e74c3c;
+    color: white;
+    border-radius: 50%;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 0.8rem;
+    font-weight: bold;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.4);
+    border: 2px solid white;
 }
 
 .opponent-cards {
     position: relative;
     height: 60px;
     width: 40px;
-}
-
-.opponent-card-count {
-    margin-top: 5px;
-    font-size: 0.9rem;
-    color: #ddd;
 }
 
 /* Center Area (Play area) */
@@ -190,17 +205,18 @@ button:disabled {
 }
 
 #center-pile {
-    position: relative;
-    width: 200px;
-    height: 200px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    min-height: 120px;
+    margin-top: 50px;
 }
 
 .played-card {
-    position: absolute;
-    left: 50%;
-    top: 50%;
-    transform: translate(-50%, -50%);
+    position: relative;
     box-shadow: 2px 2px 5px rgba(0,0,0,0.5);
+    margin: 0;
 }
 
 .played-card-label {

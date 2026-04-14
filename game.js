@@ -23,7 +23,14 @@ const state = {
     gameStarted: false,
     gameOver: false,
     donkey: null,
-    animationsPlaying: false
+    animationsPlaying: false,
+    fastMode: false,
+    voidSuits: {
+        'Hearts': false,
+        'Diamonds': false,
+        'Clubs': false,
+        'Spades': false
+    } // Track which suits have been cut by someone
 };
 
 // Card definitions
@@ -86,6 +93,8 @@ function sortHand(hand) {
 function initGame() {
     const numPlayersSelect = document.getElementById('num-players');
     state.numPlayers = parseInt(numPlayersSelect.value);
+    const fastModeCheckbox = document.getElementById('fast-mode');
+    state.fastMode = fastModeCheckbox.checked;
 
     state.players = [];
     // Player 0 is human
@@ -128,6 +137,12 @@ function initGame() {
     state.gameStarted = true;
     state.gameOver = false;
     state.donkey = null;
+    state.voidSuits = {
+        'Hearts': false,
+        'Diamonds': false,
+        'Clubs': false,
+        'Spades': false
+    };
 
     document.getElementById('setup-screen').classList.add('hidden');
     document.getElementById('game-screen').classList.remove('hidden');
@@ -142,6 +157,7 @@ function initGame() {
 
 // Helpers
 function playSound(name) {
+    if (state.fastMode) return;
     try {
         if (sounds[name]) {
             sounds[name].currentTime = 0;
@@ -204,6 +220,8 @@ function playCard(playerIndex, cardIndex) {
         // Check if cut
         if (card.suit !== state.roundSuit) {
             state.isCut = true;
+            // Mark the led suit as voided (someone doesn't have it)
+            state.voidSuits[state.roundSuit] = true;
         } else if (!state.isCut) {
             // Update highest card if follows suit and no cut yet
             if (getRankValue(card.rank) > getRankValue(state.highestCardInRound.rank)) {
@@ -226,11 +244,15 @@ function playCard(playerIndex, cardIndex) {
 
     if (state.gameOver) return;
 
-    state.animationsPlaying = true;
-
-    setTimeout(() => {
+    if (state.fastMode) {
         resolveTurn();
-    }, 1000);
+    } else {
+        state.animationsPlaying = true;
+
+        setTimeout(() => {
+            resolveTurn();
+        }, 1000);
+    }
 }
 
 function resolveTurn() {
@@ -293,14 +315,20 @@ function resolveTrick() {
 
     renderGame();
 
-    document.getElementById('continue-btn').classList.remove('hidden');
-    // If next is bot, click continue automatically after delay
-    if (state.players[state.currentTurnIndex].isBot) {
-        setTimeout(() => {
-            if (!state.gameOver) {
-                document.getElementById('continue-btn').click();
-            }
-        }, 1500);
+    if (state.fastMode && state.players[state.currentTurnIndex].isBot) {
+        if (!state.gameOver) {
+            playBotTurn();
+        }
+    } else {
+        document.getElementById('continue-btn').classList.remove('hidden');
+        // If next is bot, click continue automatically after delay
+        if (state.players[state.currentTurnIndex].isBot) {
+            setTimeout(() => {
+                if (!state.gameOver) {
+                    document.getElementById('continue-btn').click();
+                }
+            }, state.fastMode ? 0 : 1500);
+        }
     }
 }
 
@@ -325,7 +353,11 @@ function advanceTurn() {
     updateStatus(`${currentPlayer.name}'s turn`);
 
     if (currentPlayer.isBot) {
-        setTimeout(playBotTurn, 1000);
+        if (state.fastMode) {
+            playBotTurn();
+        } else {
+            setTimeout(playBotTurn, 1000);
+        }
     }
 }
 
@@ -400,6 +432,20 @@ function renderOpponents() {
         nameDiv.className = 'opponent-name';
         nameDiv.textContent = opponent.name;
 
+        if (!opponent.isSafe) {
+            const countBadge = document.createElement('div');
+            countBadge.className = 'opponent-card-count';
+            countBadge.textContent = opponent.hand.length;
+            nameDiv.appendChild(countBadge);
+        } else {
+            const countBadge = document.createElement('div');
+            countBadge.className = 'opponent-card-count';
+            countBadge.style.backgroundColor = '#2ecc71';
+            countBadge.style.fontSize = '0.6rem';
+            countBadge.textContent = 'Safe';
+            nameDiv.appendChild(countBadge);
+        }
+
         const cardsDiv = document.createElement('div');
         cardsDiv.className = 'opponent-cards';
 
@@ -408,13 +454,8 @@ function renderOpponents() {
             cardsDiv.appendChild(cardBack);
         }
 
-        const countDiv = document.createElement('div');
-        countDiv.className = 'opponent-card-count';
-        countDiv.textContent = opponent.isSafe ? 'Safe' : `${opponent.hand.length} cards`;
-
         oppDiv.appendChild(nameDiv);
         oppDiv.appendChild(cardsDiv);
-        oppDiv.appendChild(countDiv);
         container.appendChild(oppDiv);
     }
 }
@@ -465,15 +506,9 @@ function renderCenterPile() {
         const cardEl = createCardElement(item.card);
         cardEl.className = 'card played-card';
 
-        // Random slight rotation for visual effect
-        const rotation = (Math.random() * 20) - 10;
-        cardEl.style.transform = `translate(-50%, -50%) rotate(${rotation}deg)`;
-
-        // Add tiny offset
-        const offsetX = (Math.random() * 20) - 10;
-        const offsetY = (Math.random() * 20) - 10;
-        cardEl.style.left = `calc(50% + ${offsetX}px)`;
-        cardEl.style.top = `calc(50% + ${offsetY}px)`;
+        // Just a very subtle rotation for a bit of natural feel, but no absolute positioning
+        const rotation = (Math.random() * 6) - 3;
+        cardEl.style.transform = `rotate(${rotation}deg)`;
 
         const label = document.createElement('div');
         label.className = 'played-card-label';
@@ -531,39 +566,100 @@ function playBotTurn() {
 
     // Bot Logic
     if (!state.roundSuit) {
-        // Leading: play the lowest card to try and get rid of it without taking trick
-        // Or if forced to start, maybe a small card
+        // LEADING
+        // Sort from lowest to highest
         validCards.sort((a, b) => getRankValue(a.card.rank) - getRankValue(b.card.rank));
-        // Find if has A Spades if first move
+
         const aSpades = validCards.find(c => c.card.suit === 'Spades' && c.card.rank === 'A');
-        if (aSpades) {
+        if (aSpades && state.centerPile.length === 0 && !state.winnerOfTrick && !state.isCut) {
+            // First turn of the game
             chosenIndex = aSpades.index;
         } else {
-            chosenIndex = validCards[0].index; // Play lowest
+            // Smart Leading:
+            // 1. Avoid suits that have been cut (voidSuits)
+            // 2. Play from a suit where we have the fewest cards to create a void for ourselves
+            // 3. Play the lowest card of that chosen suit
+
+            // Count suits in hand
+            const suitCounts = {};
+            for (let c of bot.hand) {
+                suitCounts[c.suit] = (suitCounts[c.suit] || 0) + 1;
+            }
+
+            // Score each valid card for leading
+            let bestScore = -1000;
+            let bestIndex = validCards[0].index;
+
+            for (let vc of validCards) {
+                let score = 0;
+
+                // Penalize heavily if this suit is known to be cut (someone is void)
+                if (state.voidSuits[vc.card.suit]) {
+                    score -= 100;
+                }
+
+                // Reward playing suits we have fewer of (try to create a void)
+                score += (13 - suitCounts[vc.card.suit]) * 5;
+
+                // Reward playing lower cards (safer)
+                score += (14 - getRankValue(vc.card.rank));
+
+                if (score > bestScore) {
+                    bestScore = score;
+                    bestIndex = vc.index;
+                }
+            }
+
+            chosenIndex = bestIndex;
         }
     } else {
-        // Following suit
+        // FOLLOWING
         if (validCards[0].card.suit === state.roundSuit) {
             // Must follow suit
-            // Try to play a card just below the highest card in round to avoid taking trick,
-            // or if we must take it (we only have higher cards), play the highest to maybe win next
             const highestRankVal = getRankValue(state.highestCardInRound.rank);
             const lowerCards = validCards.filter(c => getRankValue(c.card.rank) < highestRankVal);
 
             if (lowerCards.length > 0) {
-                // Play highest possible that is still lower than the current highest
+                // Safe: play the HIGHEST card that is STILL LOWER than the current highest
                 lowerCards.sort((a, b) => getRankValue(b.card.rank) - getRankValue(a.card.rank));
                 chosenIndex = lowerCards[0].index;
             } else {
-                // Have to play higher, might take the trick. Play the highest to clear it out
+                // Danger: we have to play higher.
+                // If we are the LAST player to play this trick, and we must go over,
+                // we'll take the trick anyway. We should play our HIGHEST card to get rid of it.
+                // If we are NOT the last player, someone else might still go higher than us.
+                // Either way, playing highest is usually best to clear large cards.
                 validCards.sort((a, b) => getRankValue(b.card.rank) - getRankValue(a.card.rank));
                 chosenIndex = validCards[0].index;
             }
         } else {
-            // Cutting (playing a different suit)
-            // Play highest card overall to get rid of it
-            validCards.sort((a, b) => getRankValue(b.card.rank) - getRankValue(a.card.rank));
-            chosenIndex = validCards[0].index;
+            // CUTTING (playing a different suit)
+            // We want to get rid of our highest card overall, OR
+            // get rid of a high card in a suit we have few of (to create a void).
+
+            let bestScore = -1000;
+            let bestIndex = validCards[0].index;
+
+            const suitCounts = {};
+            for (let c of bot.hand) {
+                suitCounts[c.suit] = (suitCounts[c.suit] || 0) + 1;
+            }
+
+            for (let vc of validCards) {
+                let score = 0;
+
+                // Reward high cards
+                score += getRankValue(vc.card.rank) * 10;
+
+                // Slight reward for suits we have fewer of
+                score += (13 - suitCounts[vc.card.suit]);
+
+                if (score > bestScore) {
+                    bestScore = score;
+                    bestIndex = vc.index;
+                }
+            }
+            chosenIndex = bestIndex;
         }
     }
 
