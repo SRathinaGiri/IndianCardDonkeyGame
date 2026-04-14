@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Indian Card Game Donkey (Bhabhi)</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="setup-screen">
+        <h1>Indian Card Game Donkey (Bhabhi)</h1>
+        <div class="setup-controls">
+            <label for="num-players">Number of players (including you):</label>
+            <select id="num-players">
+                <option value="2">2</option>
+                <option value="3">3</option>
+                <option value="4" selected>4</option>
+                <option value="5">5</option>
+                <option value="6">6</option>
+            </select>
+            <button id="start-btn">Start Game</button>
+        </div>
+        <div class="instructions">
+            <h2>How to Play</h2>
+            <p>The game is played with a single 52-card deck (no jokers). The goal is to get rid of all your cards.</p>
+            <ul>
+                <li>The player with the Ace of Spades (A♠) starts the first round by playing it.</li>
+                <li>Players must follow the suit led if they have it.</li>
+                <li>If all players play the same suit, the player who played the highest card wins the trick, the cards are discarded, and that player starts the next round.</li>
+                <li>If a player cannot follow suit, they can play a card of any other suit (called a "cut" or "thulla").</li>
+                <li>When a cut occurs, the round ends immediately. The player who played the highest card of the led suit must take the entire pile of cards played so far in that round, adding them to their hand. That player then starts the next round.</li>
+                <li>When a player runs out of cards, they are safe and out of the game.</li>
+                <li>The last player remaining with cards is the DONKEY!</li>
+            </ul>
+        </div>
+    </div>
+
+    <div id="game-screen" class="hidden">
+        <div id="game-table">
+            <div id="opponents-container"></div>
+
+            <div id="center-area">
+                <div id="status-message">Waiting to start...</div>
+                <div id="center-pile"></div>
+                <button id="continue-btn" class="hidden">Continue</button>
+            </div>
+
+            <div id="player-area">
+                <div class="player-info">
+                    <span id="player-name">You</span>
+                    <span class="card-count" id="player-card-count">0 cards</span>
+                </div>
+                <div id="player-hand" class="hand"></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="game-over-screen" class="hidden">
+        <h1 id="game-over-title">Game Over!</h1>
+        <p id="game-over-message"></p>
+        <button id="restart-btn">Play Again</button>
+    </div>
+
+    <script src="game.js"></script>
+</body>
+</html>

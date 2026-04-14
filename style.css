@@ -1,0 +1,307 @@
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: Arial, sans-serif;
+    background-color: #005000;
+    color: white;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.hidden {
+    display: none !important;
+}
+
+/* Setup Screen */
+#setup-screen, #game-over-screen {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.8);
+    padding: 20px;
+    text-align: center;
+    z-index: 100;
+}
+
+#setup-screen h1, #game-over-screen h1 {
+    margin-bottom: 20px;
+    color: #ffd700;
+    text-shadow: 2px 2px 4px #000;
+}
+
+.setup-controls {
+    margin-bottom: 30px;
+    background: #111;
+    padding: 20px;
+    border-radius: 10px;
+    border: 2px solid #ffd700;
+}
+
+.setup-controls label {
+    font-size: 1.2rem;
+    margin-right: 10px;
+}
+
+.setup-controls select {
+    font-size: 1.2rem;
+    padding: 5px;
+    margin-right: 20px;
+    border-radius: 5px;
+}
+
+button {
+    font-size: 1.2rem;
+    padding: 10px 20px;
+    background-color: #ffd700;
+    color: #000;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: background-color 0.2s;
+}
+
+button:hover {
+    background-color: #ffea00;
+}
+
+button:disabled {
+    background-color: #666;
+    color: #333;
+    cursor: not-allowed;
+}
+
+.instructions {
+    max-width: 600px;
+    text-align: left;
+    background: rgba(0, 0, 0, 0.6);
+    padding: 20px;
+    border-radius: 10px;
+    line-height: 1.5;
+}
+
+.instructions h2 {
+    text-align: center;
+    margin-bottom: 15px;
+    color: #ffd700;
+}
+
+.instructions ul {
+    margin-top: 10px;
+    margin-left: 20px;
+}
+
+.instructions li {
+    margin-bottom: 5px;
+}
+
+/* Game Screen */
+#game-screen {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+#game-table {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+}
+
+/* Opponents Area */
+#opponents-container {
+    display: flex;
+    justify-content: space-around;
+    padding: 10px;
+    background-color: rgba(0, 0, 0, 0.3);
+    min-height: 120px;
+}
+
+.opponent {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background-color: rgba(0, 0, 0, 0.5);
+    padding: 10px;
+    border-radius: 10px;
+    min-width: 100px;
+    transition: transform 0.3s;
+}
+
+.opponent.active {
+    box-shadow: 0 0 15px #ffd700;
+    border: 2px solid #ffd700;
+    transform: scale(1.05);
+}
+
+.opponent.safe {
+    opacity: 0.5;
+}
+
+.opponent-name {
+    font-weight: bold;
+    margin-bottom: 5px;
+}
+
+.opponent-cards {
+    position: relative;
+    height: 60px;
+    width: 40px;
+}
+
+.opponent-card-count {
+    margin-top: 5px;
+    font-size: 0.9rem;
+    color: #ddd;
+}
+
+/* Center Area (Play area) */
+#center-area {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+}
+
+#status-message {
+    position: absolute;
+    top: 20px;
+    background: rgba(0, 0, 0, 0.7);
+    padding: 10px 20px;
+    border-radius: 20px;
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: #fff;
+    text-align: center;
+    max-width: 80%;
+    z-index: 10;
+}
+
+#center-pile {
+    position: relative;
+    width: 200px;
+    height: 200px;
+}
+
+.played-card {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    box-shadow: 2px 2px 5px rgba(0,0,0,0.5);
+}
+
+.played-card-label {
+    position: absolute;
+    background: rgba(0,0,0,0.7);
+    color: white;
+    padding: 2px 5px;
+    border-radius: 5px;
+    font-size: 0.8rem;
+    bottom: -20px;
+    left: 50%;
+    transform: translateX(-50%);
+    white-space: nowrap;
+}
+
+#continue-btn {
+    margin-top: 20px;
+    z-index: 10;
+}
+
+/* Player Area */
+#player-area {
+    height: 200px;
+    background-color: rgba(0, 0, 0, 0.4);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 10px;
+}
+
+.player-info {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+    max-width: 800px;
+    margin-bottom: 10px;
+    font-size: 1.2rem;
+    font-weight: bold;
+}
+
+#player-area.active {
+    box-shadow: inset 0 0 20px #ffd700;
+}
+
+#player-hand {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 5px;
+    width: 100%;
+    max-width: 1000px;
+    overflow-y: auto;
+}
+
+/* Card Styling */
+.card {
+    width: 69px;
+    height: 100px;
+    border-radius: 5px;
+    background-image: url('cards.png');
+    background-size: 897px 384px; /* 13 columns x 69px = 897px, 4 rows x 96px = 384px. Wait, original is 923x384. 13*71=923. 71x96. */
+    box-shadow: 1px 1px 3px rgba(0,0,0,0.3);
+    position: relative;
+    transition: transform 0.2s, top 0.2s;
+    cursor: pointer;
+}
+
+/* Update background size for 923x384 sprite sheet (13 columns, 4 rows)
+   Card width = 923 / 13 = ~71px
+   Card height = 384 / 4 = 96px
+*/
+.card {
+    width: 71px;
+    height: 96px;
+    background-size: 923px 384px;
+}
+
+.card:hover {
+    transform: translateY(-10px);
+}
+
+.card.playable:hover {
+    transform: translateY(-15px);
+    box-shadow: 0 0 10px #ffd700;
+}
+
+.card.disabled {
+    filter: brightness(0.6);
+    cursor: not-allowed;
+}
+
+.card.disabled:hover {
+    transform: none;
+}
+
+.card-back {
+    width: 71px;
+    height: 96px;
+    background-image: url('card-back.png');
+    background-size: cover;
+    border-radius: 5px;
+    box-shadow: 1px 1px 3px rgba(0,0,0,0.3);
+    position: absolute;
+}
