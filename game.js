@@ -253,7 +253,7 @@ function playCard(playerIndex, cardIndex) {
 
         setTimeout(() => {
             resolveTurn();
-        }, 1000);
+        }, 1500); // Increased from 1000 to give more time to see the played card
     }
 }
 
@@ -343,7 +343,7 @@ function executeTrickResolution() {
             if (state.fastMode) {
                 playBotTurn();
             } else {
-                setTimeout(playBotTurn, 1000);
+                setTimeout(playBotTurn, 1500); // Increased delay
             }
         }
     }
@@ -367,7 +367,7 @@ function advanceTurn() {
         if (state.fastMode) {
             playBotTurn();
         } else {
-            setTimeout(playBotTurn, 1000);
+            setTimeout(playBotTurn, 1500); // Increased delay
         }
     }
 }
