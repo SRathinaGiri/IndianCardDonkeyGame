@@ -565,14 +565,46 @@ function renderCenterPile() {
     const pile = document.getElementById('center-pile');
     pile.innerHTML = '';
 
-    for (let i = 0; i < state.centerPile.length; i++) {
+    const numCards = state.centerPile.length;
+    if (numCards === 0) return;
+
+    // Spread cards across the container width
+    const containerWidth = 600; // Match CSS
+    const cardWidth = 106;
+
+    // Calculate the spacing between cards
+    // If only 1 card, put it in center.
+    // If multiple, spread them so they are fully visible but maybe slightly overlapped if too many.
+    let spacing = cardWidth + 10; // Default spacing: slightly more than card width
+
+    // If they would exceed container, compress them slightly
+    if ((numCards * cardWidth) + ((numCards - 1) * 10) > containerWidth) {
+        spacing = (containerWidth - cardWidth) / (numCards - 1);
+    }
+
+    // Calculate total width used by the spread
+    const totalWidth = cardWidth + ((numCards - 1) * spacing);
+
+    // Start drawing from this offset to center the group in the container
+    const startOffsetX = (containerWidth - totalWidth) / 2;
+
+    for (let i = 0; i < numCards; i++) {
         const item = state.centerPile[i];
         const cardEl = createCardElement(item.card);
         cardEl.className = 'card played-card';
 
-        // Just a very subtle rotation for a bit of natural feel, but no absolute positioning
-        const rotation = (Math.random() * 6) - 3;
+        // Base X position
+        const baseX = startOffsetX + (i * spacing);
+
+        // Add random "thrown" messiness
+        const offsetX = (Math.random() * 16) - 8;
+        const offsetY = (Math.random() * 20) - 10;
+        const rotation = (Math.random() * 16) - 8;
+
+        cardEl.style.left = `${baseX + offsetX}px`;
+        cardEl.style.top = `${20 + offsetY}px`; // 20px base top offset
         cardEl.style.transform = `rotate(${rotation}deg)`;
+        cardEl.style.zIndex = i + 1;
 
         const label = document.createElement('div');
         label.className = 'played-card-label';

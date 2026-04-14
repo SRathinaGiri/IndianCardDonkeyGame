@@ -225,17 +225,16 @@ button:disabled {
 }
 
 #center-pile {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 10px;
-    min-height: 120px;
+    position: relative;
+    width: 600px; /* Wide enough to fit many cards scattered */
+    height: 180px;
     margin-top: 50px;
+    /* Cards will be absolute positioned inside */
 }
 
 .played-card {
-    position: relative;
-    box-shadow: 2px 2px 5px rgba(0,0,0,0.5);
+    position: absolute;
+    box-shadow: 3px 3px 6px rgba(0,0,0,0.6);
     margin: 0;
 }
 
