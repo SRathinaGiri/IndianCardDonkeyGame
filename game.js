@@ -404,10 +404,10 @@ function createCardElement(card, isHidden = false) {
         const spriteRanks = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K'];
         const rankIndex = spriteRanks.indexOf(card.rank);
 
-        // Sprite size: 923x384 (13 cols, 4 rows)
-        // Card width: ~71px, height: 96px
-        const xPos = -(rankIndex * 71);
-        const yPos = -(suitIndex * 96);
+        // Sprite size scaled 1.5x: 1384x576 (13 cols, 4 rows)
+        // Card width: ~106.5px, height: 144px
+        const xPos = -(rankIndex * 106.5);
+        const yPos = -(suitIndex * 144);
 
         cardDiv.style.backgroundPosition = `${xPos}px ${yPos}px`;
     }

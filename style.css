@@ -272,35 +272,47 @@ button:disabled {
 }
 
 /* Card Styling */
+/*
+  Original card width: ~71px, height: 96px.
+  Scaling by 1.5x gives width: ~106.5px (round to 106px), height: 144px.
+  Sprite sheet size: 923x384. Scaled 1.5x = 1384.5x576. Let's use 1384px x 576px.
+*/
 .card {
-    width: 69px;
-    height: 100px;
+    width: 106px;
+    height: 144px;
     border-radius: 5px;
     background-image: url('cards.png');
-    background-size: 897px 384px; /* 13 columns x 69px = 897px, 4 rows x 96px = 384px. Wait, original is 923x384. 13*71=923. 71x96. */
+    background-size: 1384px 576px;
     box-shadow: 1px 1px 3px rgba(0,0,0,0.3);
     position: relative;
     transition: transform 0.2s, top 0.2s;
     cursor: pointer;
+    margin-left: -50px; /* Overlap cards in hand */
 }
 
-/* Update background size for 923x384 sprite sheet (13 columns, 4 rows)
-   Card width = 923 / 13 = ~71px
-   Card height = 384 / 4 = 96px
-*/
-.card {
-    width: 71px;
-    height: 96px;
-    background-size: 923px 384px;
+/* Give the first card normal margin so hand doesn't shift entirely */
+#player-hand .card:first-child {
+    margin-left: 0;
+}
+
+/* Keep center pile cards slightly overlapped or adjust margin */
+#center-pile .card {
+    margin-left: -30px;
+}
+
+#center-pile .card:first-child {
+    margin-left: 0;
 }
 
 .card:hover {
     transform: translateY(-10px);
+    z-index: 10;
 }
 
 .card.playable:hover {
     transform: translateY(-15px);
     box-shadow: 0 0 10px #ffd700;
+    z-index: 10;
 }
 
 .card.disabled {
@@ -313,8 +325,8 @@ button:disabled {
 }
 
 .card-back {
-    width: 71px;
-    height: 96px;
+    width: 106px;
+    height: 144px;
     background-image: url('card-back.png');
     background-size: cover;
     border-radius: 5px;
