@@ -111,6 +111,13 @@ function initGame() {
         order: 0
     });
 
+    // Load donkey scores
+    let savedScores = {};
+    try {
+        const stored = localStorage.getItem('donkeyScores');
+        if (stored) savedScores = JSON.parse(stored);
+    } catch(e) {}
+
     // Create bots
     for (let i = 1; i < state.numPlayers; i++) {
         state.players.push({
@@ -119,9 +126,12 @@ function initGame() {
             hand: [],
             isBot: true,
             isSafe: false,
-            order: i
+            order: i,
+            donkeyCount: savedScores[`player-${i}`] || 0
         });
     }
+
+    state.players[0].donkeyCount = savedScores['player-0'] || 0;
 
     dealCards();
 
@@ -383,6 +393,16 @@ function checkGameOver() {
         state.gameOver = true;
         state.donkey = activePlayers[0];
 
+        // Update score
+        state.donkey.donkeyCount++;
+        let savedScores = {};
+        try {
+            const stored = localStorage.getItem('donkeyScores');
+            if (stored) savedScores = JSON.parse(stored);
+            savedScores[state.donkey.id] = state.donkey.donkeyCount;
+            localStorage.setItem('donkeyScores', JSON.stringify(savedScores));
+        } catch(e) {}
+
         setTimeout(() => {
             document.getElementById('game-screen').classList.add('hidden');
             const goScreen = document.getElementById('game-over-screen');
@@ -492,6 +512,13 @@ function renderOpponents() {
         nameDiv.className = 'opponent-name';
         nameDiv.textContent = opponent.name;
 
+        // Add Donkey Score
+        const donkeyScore = document.createElement('div');
+        donkeyScore.style.fontSize = '0.7rem';
+        donkeyScore.style.color = '#ffd700';
+        donkeyScore.textContent = `Donkey: ${opponent.donkeyCount}`;
+        nameDiv.appendChild(donkeyScore);
+
         if (!opponent.isSafe) {
             const countBadge = document.createElement('div');
             countBadge.className = 'opponent-card-count';
@@ -524,8 +551,11 @@ function renderPlayerHand() {
     const playerArea = document.getElementById('player-area');
     const playerHand = document.getElementById('player-hand');
     const playerCount = document.getElementById('player-card-count');
+    const playerName = document.getElementById('player-name');
 
     const player = state.players[0]; // Human
+
+    playerName.innerHTML = `You <span style="font-size: 0.8rem; color: #ffd700; margin-left: 10px;">(Donkey: ${player.donkeyCount})</span>`;
 
     if (state.currentTurnIndex === 0) {
         playerArea.classList.add('active');
@@ -789,6 +819,39 @@ function playBotTurn() {
 }
 
 // Event Listeners
+// PWA logic
+let deferredPrompt;
+window.addEventListener('beforeinstallprompt', (e) => {
+    // Prevent the mini-infobar from appearing on mobile
+    e.preventDefault();
+    // Stash the event so it can be triggered later.
+    deferredPrompt = e;
+    // Update UI notify the user they can install the PWA
+    const installBtn = document.getElementById('install-btn');
+    installBtn.classList.remove('hidden');
+
+    installBtn.addEventListener('click', async () => {
+        // Show the install prompt
+        deferredPrompt.prompt();
+        // Wait for the user to respond to the prompt
+        const { outcome } = await deferredPrompt.userChoice;
+        if (outcome === 'accepted') {
+            installBtn.classList.add('hidden');
+        }
+        deferredPrompt = null;
+    });
+});
+
+if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+        navigator.serviceWorker.register('sw.js').then(registration => {
+            console.log('SW registered: ', registration);
+        }).catch(registrationError => {
+            console.log('SW registration failed: ', registrationError);
+        });
+    });
+}
+
 document.getElementById('start-btn').addEventListener('click', () => {
     playSound('click');
     initGame();
