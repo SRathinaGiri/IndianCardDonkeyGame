@@ -180,6 +180,26 @@ button:disabled {
     width: 40px;
 }
 
+/* Discard Area */
+#discard-area {
+    position: absolute;
+    left: 20px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 120px;
+    height: 160px;
+    z-index: 5;
+    pointer-events: none; /* Discard pile is just visual */
+}
+
+#discard-area .card, #discard-area .card-back {
+    position: absolute;
+    top: 0;
+    left: 0;
+    margin: 0;
+    box-shadow: 1px 1px 2px rgba(0,0,0,0.8);
+}
+
 /* Center Area (Play area) */
 #center-area {
     flex: 1;
@@ -263,12 +283,14 @@ button:disabled {
 
 #player-hand {
     display: flex;
-    flex-wrap: wrap;
+    flex-wrap: nowrap; /* Prevent wrapping */
     justify-content: center;
-    gap: 5px;
+    align-items: flex-end;
     width: 100%;
     max-width: 1000px;
-    overflow-y: auto;
+    overflow: visible; /* Avoid scrollbars */
+    padding-bottom: 20px; /* Room for hover effect */
+    height: 160px; /* Base height for cards */
 }
 
 /* Card Styling */
@@ -287,12 +309,7 @@ button:disabled {
     position: relative;
     transition: transform 0.2s, top 0.2s;
     cursor: pointer;
-    margin-left: -50px; /* Overlap cards in hand */
-}
-
-/* Give the first card normal margin so hand doesn't shift entirely */
-#player-hand .card:first-child {
-    margin-left: 0;
+    /* margin-left is now set dynamically in JS based on hand size */
 }
 
 /* Keep center pile cards slightly overlapped or adjust margin */
