@@ -20,7 +20,9 @@
             </select>
             <div style="margin: 15px 0;">
                 <input type="checkbox" id="fast-mode" name="fast-mode">
-                <label for="fast-mode">Fast Mode (No animations/sounds)</label>
+                <label for="fast-mode" style="margin-right: 20px;">Fast Mode (No animations/sounds)</label>
+                <input type="checkbox" id="show-pile-stock" name="show-pile-stock">
+                <label for="show-pile-stock">Show Pile Stock</label>
             </div>
             <button id="start-btn">Start Game</button>
         </div>
@@ -44,6 +46,7 @@
             <div id="status-message">Waiting to start...</div>
             <div id="opponents-container"></div>
 
+            <div id="pile-stock" class="hidden"></div>
             <div id="discard-area"></div>
 
             <div id="center-area">

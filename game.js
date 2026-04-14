@@ -25,6 +25,7 @@ const state = {
     donkey: null,
     animationsPlaying: false,
     fastMode: false,
+    showPileStock: false,
     voidSuits: {
         'Hearts': false,
         'Diamonds': false,
@@ -96,6 +97,8 @@ function initGame() {
     state.numPlayers = parseInt(numPlayersSelect.value);
     const fastModeCheckbox = document.getElementById('fast-mode');
     state.fastMode = fastModeCheckbox.checked;
+    const showPileStockCheckbox = document.getElementById('show-pile-stock');
+    state.showPileStock = showPileStockCheckbox.checked;
 
     state.players = [];
     // Player 0 is human
@@ -338,7 +341,8 @@ function executeTrickResolution() {
 
     if (!state.gameOver) {
         const currentPlayer = state.players[state.currentTurnIndex];
-        updateStatus(`${currentPlayer.name}'s turn`);
+        const turnMessage = currentPlayer.id === 'player-0' ? 'Your Turn' : `${currentPlayer.name}'s turn`;
+        updateStatus(turnMessage);
         if (currentPlayer.isBot) {
             if (state.fastMode) {
                 playBotTurn();
@@ -361,7 +365,8 @@ function advanceTurn() {
 
     updateActivePlayer();
     const currentPlayer = state.players[state.currentTurnIndex];
-    updateStatus(`${currentPlayer.name}'s turn`);
+    const turnMessage = currentPlayer.id === 'player-0' ? 'Your Turn' : `${currentPlayer.name}'s turn`;
+    updateStatus(turnMessage);
 
     if (currentPlayer.isBot) {
         if (state.fastMode) {
@@ -406,7 +411,28 @@ function renderGame() {
 
 function renderDiscardPile() {
     const discardArea = document.getElementById('discard-area');
+    const pileStock = document.getElementById('pile-stock');
     discardArea.innerHTML = '';
+
+    // Pile stock summary
+    if (state.showPileStock && state.discardPile.length > 0) {
+        pileStock.classList.remove('hidden');
+
+        let counts = { 'Spades': 0, 'Hearts': 0, 'Diamonds': 0, 'Clubs': 0 };
+        for (let c of state.discardPile) {
+            counts[c.suit]++;
+        }
+
+        pileStock.innerHTML = `
+            <div><strong>Discarded</strong></div>
+            <div style="color: #aaa;">♠ Spades: ${counts['Spades']}</div>
+            <div style="color: #ff6b6b;">♥ Hearts: ${counts['Hearts']}</div>
+            <div style="color: #ff6b6b;">♦ Diamonds: ${counts['Diamonds']}</div>
+            <div style="color: #aaa;">♣ Clubs: ${counts['Clubs']}</div>
+        `;
+    } else {
+        pileStock.classList.add('hidden');
+    }
 
     // To prevent DOM overload, only render top few cards if there are many
     const maxRender = 10;
