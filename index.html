@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Indian Card Game Donkey (Bhabhi)</title>
-    <link rel="stylesheet" href="style.css?v=1.0.9">
-    <link rel="manifest" href="manifest.json?v=1.0.9">
+    <link rel="stylesheet" href="style.css?v=1.1.0">
+    <link rel="manifest" href="manifest.json?v=1.1.0">
     <link rel="icon" type="image/png" href="icon-192x192.png">
     <meta name="theme-color" content="#005000">
 </head>
@@ -18,7 +18,13 @@
     </div>
 
     <div id="setup-screen">
-        <h1>Indian Card Game Donkey (Bhabhi)</h1>
+        <div class="brand-lockup">
+            <img src="icon-192x192.png" alt="Donkey game icon" class="brand-lockup-icon">
+            <div class="brand-lockup-text">
+                <h1>Indian Card Game Donkey (Bhabhi)</h1>
+                <p>Play the pile or become the donkey.</p>
+            </div>
+        </div>
         <div class="setup-controls">
             <label for="num-players">Number of players (including you):</label>
             <select id="num-players">
@@ -54,6 +60,13 @@
 
     <div id="game-screen" class="hidden">
         <div id="game-table">
+            <div id="game-brand-badge">
+                <img src="icon-192x192.png" alt="" class="game-brand-badge-icon">
+                <div class="game-brand-badge-text">
+                    <strong>Donkey</strong>
+                    <span>Bhabhi</span>
+                </div>
+            </div>
             <div id="status-message">Waiting to start...</div>
             <div id="opponents-container"></div>
 
@@ -76,11 +89,12 @@
     </div>
 
     <div id="game-over-screen" class="hidden">
+        <img src="icon-192x192.png" alt="Donkey game icon" class="game-over-icon">
         <h1 id="game-over-title">Game Over!</h1>
         <p id="game-over-message"></p>
         <button id="restart-btn">Play Again</button>
     </div>
 
-    <script src="game.js?v=1.0.9"></script>
+    <script src="game.js?v=1.1.0"></script>
 </body>
 </html>
