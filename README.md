@@ -32,9 +32,10 @@ This project includes:
 
 ## Current Gameplay Flow
 
-- After each card is played, the game pauses and shows a **Continue** button.
-- The same pause is used before the table is cleared or the center pile is added back to a player's hand.
-- This makes each trick easier to follow visually.
+- Players continue normally through each throw within a round.
+- The game pauses with a **Continue** button only when a trick is complete or when a cut ends the round.
+- That pause happens just before the table is cleared or the center pile is added back to a player's hand.
+- Played cards are shown in a tighter horizontal spread in the center area so the round is easier to read.
 
 ## Getting Started
 

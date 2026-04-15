@@ -237,6 +237,7 @@ button:disabled {
     align-items: center;
     justify-content: center;
     position: relative;
+    padding: 72px 0 118px;
 }
 
 #status-message {
@@ -258,15 +259,18 @@ button:disabled {
 
 #center-pile {
     position: relative;
-    width: min(600px, calc(100% - 40px));
-    height: 180px;
-    margin-top: 50px;
+    width: min(720px, calc(100% - 60px));
+    height: 220px;
+    margin-top: 24px;
+    overflow: visible;
 }
 
 .played-card {
     position: absolute;
     box-shadow: 3px 3px 6px rgba(0,0,0,0.6);
     margin: 0 !important;
+    transform: translate(var(--card-shift-x, 0px), var(--card-shift-y, 0px)) rotate(var(--card-tilt, 0deg));
+    transform-origin: center center;
 }
 
 .played-card-label {
@@ -276,10 +280,11 @@ button:disabled {
     padding: 2px 5px;
     border-radius: 5px;
     font-size: 0.8rem;
-    bottom: -20px;
+    bottom: -18px;
     left: 50%;
     transform: translateX(-50%);
     white-space: nowrap;
+    z-index: 2;
 }
 
 #continue-btn {
@@ -520,18 +525,22 @@ button:disabled {
     #center-pile {
         width: 100%;
         max-width: calc(100% - 20px);
-        height: 94px;
+        height: 130px;
         margin-top: 0;
     }
 
-    #center-area .card {
-        transform: scale(0.58);
+    #center-area {
+        padding: 48px 0 92px;
+    }
+
+    #center-area .played-card {
+        transform: scale(0.58) translate(var(--card-shift-x, 0px), var(--card-shift-y, 0px)) rotate(var(--card-tilt, 0deg));
         transform-origin: top left;
     }
 
     .played-card-label {
         font-size: 0.65rem;
-        bottom: -16px;
+        bottom: -14px;
     }
 
     #pile-stock {

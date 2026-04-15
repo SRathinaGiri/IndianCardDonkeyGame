@@ -166,7 +166,7 @@ function initGame() {
     document.getElementById('continue-btn').classList.add('hidden');
 
     renderGame();
-    updateStatus(`${state.players[state.currentTurnIndex].name} starts (has A♠)`);
+    updateStatus(`${state.players[state.currentTurnIndex].name} leads first with A♠`);
 
     if (state.players[state.currentTurnIndex].isBot) {
         setTimeout(playBotTurn, 1500);
@@ -279,22 +279,18 @@ function queueContinueAfterPlay(player) {
 
     const nextPlayerIndex = findNextActivePlayerIndex(player.id);
     const nextPlayer = state.players[nextPlayerIndex];
-    updateStatus(`${player.name} played ${formatCard(playedCard)}. Continue to ${nextPlayer.id === 'player-0' ? 'your turn' : `${nextPlayer.name}'s turn`}.`);
-
-    state.pendingContinueAction = () => {
-        advanceTurn();
-    };
-    showContinueButton('Continue');
+    updateStatus(`${player.name} played ${formatCard(playedCard)}. ${nextPlayer.id === 'player-0' ? 'Your turn.' : `${nextPlayer.name} to play.`}`);
+    advanceTurn();
 }
 
 function prepareTrickResolution() {
     // Determine winner/taker
     if (state.isCut) {
         const takerIndex = state.players.findIndex(p => p.id === state.winnerOfTrick);
-        updateStatus(`${state.players[takerIndex].name} takes the pile!`);
+        updateStatus(`${state.players[takerIndex].name} takes the pile and leads next.`);
     } else {
         const winnerIndex = state.players.findIndex(p => p.id === state.winnerOfTrick);
-        updateStatus(`${state.players[winnerIndex].name} won the trick`);
+        updateStatus(`${state.players[winnerIndex].name} leads the next round.`);
     }
 
     // Show continue button to pause before clearing the table
@@ -664,10 +660,10 @@ function renderCenterPile() {
     if (numCards === 0) return;
 
     const containerWidth = pile.clientWidth || 600;
+    const containerHeight = pile.clientHeight || 220;
     const cardWidth = 106;
-    const maxGap = 22;
-    const totalSpacing = Math.max(0, containerWidth - cardWidth);
-    const spacing = numCards > 1 ? Math.min(cardWidth + maxGap, totalSpacing / (numCards - 1)) : 0;
+    const cardHeight = 144;
+    const spacing = numCards > 1 ? Math.min(82, Math.max(54, (containerWidth - cardWidth) / numCards)) : 0;
     const totalWidth = cardWidth + ((numCards - 1) * spacing);
     const startOffsetX = Math.max(0, (containerWidth - totalWidth) / 2);
 
@@ -677,11 +673,18 @@ function renderCenterPile() {
         cardEl.className = 'card played-card';
 
         const baseX = startOffsetX + (i * spacing);
-        const centeredTop = Math.max(0, (pile.clientHeight - 144) / 2);
+        const baseTop = Math.max(0, (containerHeight - cardHeight) / 2) - 12;
+        const scatterSeed = `${item.playerId}-${item.card.suit}-${item.card.rank}-${i}`;
+        const xJitter = Math.round(seededScatter(scatterSeed, 10));
+        const yJitter = Math.round(seededScatter(`${scatterSeed}-y`, 14));
+        const tilt = seededScatter(`${scatterSeed}-r`, 14);
 
         cardEl.style.left = `${baseX}px`;
-        cardEl.style.top = `${centeredTop}px`;
+        cardEl.style.top = `${baseTop}px`;
         cardEl.style.zIndex = i + 1;
+        cardEl.style.setProperty('--card-shift-x', `${xJitter}px`);
+        cardEl.style.setProperty('--card-shift-y', `${yJitter}px`);
+        cardEl.style.setProperty('--card-tilt', `${tilt}deg`);
 
         const label = document.createElement('div');
         label.className = 'played-card-label';
@@ -691,6 +694,16 @@ function renderCenterPile() {
 
         pile.appendChild(cardEl);
     }
+}
+
+function seededScatter(seed, amplitude) {
+    let hash = 0;
+    for (let i = 0; i < seed.length; i++) {
+        hash = ((hash << 5) - hash) + seed.charCodeAt(i);
+        hash |= 0;
+    }
+    const normalized = ((hash >>> 0) % 1000) / 999;
+    return (normalized * 2 * amplitude) - amplitude;
 }
 
 function updateActivePlayer() {
