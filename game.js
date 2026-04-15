@@ -1,5 +1,5 @@
 // Sound assets
-const APP_VERSION = 'v1.0.8';
+const APP_VERSION = 'v1.0.9';
 
 const sounds = {
     click: new Audio('click.mp3'),
@@ -38,7 +38,8 @@ const state = {
     pendingContinueAction: null,
     autoAdvanceTimeoutId: null,
     autoAdvanceIntervalId: null,
-    autoAdvancePaused: false
+    autoAdvancePaused: false,
+    botTurnTimeoutId: null
 };
 
 // Card definitions
@@ -166,6 +167,7 @@ function initGame() {
     state.discardPile = [];
     state.pendingContinueAction = null;
     clearAutoAdvanceTimers();
+    clearBotTurnTimeout();
     state.autoAdvancePaused = false;
 
     document.getElementById('setup-screen').classList.add('hidden');
@@ -176,7 +178,7 @@ function initGame() {
     updateStatus(`${state.players[state.currentTurnIndex].name} leads first with A♠`);
 
     if (state.players[state.currentTurnIndex].isBot) {
-        setTimeout(playBotTurn, 1500);
+        scheduleBotTurn();
     }
 }
 
@@ -204,6 +206,24 @@ function clearAutoAdvanceTimers() {
         clearInterval(state.autoAdvanceIntervalId);
         state.autoAdvanceIntervalId = null;
     }
+}
+
+function clearBotTurnTimeout() {
+    if (state.botTurnTimeoutId) {
+        clearTimeout(state.botTurnTimeoutId);
+        state.botTurnTimeoutId = null;
+    }
+}
+
+function scheduleBotTurn(delay = 1500) {
+    clearBotTurnTimeout();
+    if (state.gameOver || state.pendingContinueAction) {
+        return;
+    }
+    state.botTurnTimeoutId = setTimeout(() => {
+        state.botTurnTimeoutId = null;
+        playBotTurn();
+    }, state.fastMode ? 0 : delay);
 }
 
 function executePendingContinueAction() {
@@ -265,6 +285,11 @@ function playCard(playerIndex, cardIndex) {
 
     const player = state.players[playerIndex];
     const card = player.hand[cardIndex];
+
+    // A player can only contribute one card to the current trick.
+    if (state.centerPile.some(item => item.playerId === player.id)) {
+        return;
+    }
 
     if (!isValidPlay(player, card)) {
         if (!player.isBot) playSound('error');
@@ -332,6 +357,8 @@ function queueContinueAfterPlay(player) {
 }
 
 function prepareTrickResolution() {
+    clearBotTurnTimeout();
+
     // Determine winner/taker
     if (state.isCut) {
         const takerIndex = state.players.findIndex(p => p.id === state.winnerOfTrick);
@@ -399,11 +426,7 @@ function executeTrickResolution() {
         const turnMessage = currentPlayer.id === 'player-0' ? 'Your Turn' : `${currentPlayer.name}'s turn`;
         updateStatus(turnMessage);
         if (currentPlayer.isBot) {
-            if (state.fastMode) {
-                playBotTurn();
-            } else {
-                setTimeout(playBotTurn, 1500); // Increased delay
-            }
+            scheduleBotTurn();
         }
     }
 }
@@ -432,11 +455,7 @@ function advanceTurn() {
     updateStatus(turnMessage);
 
     if (currentPlayer.isBot) {
-        if (state.fastMode) {
-            playBotTurn();
-        } else {
-            setTimeout(playBotTurn, 1500); // Increased delay
-        }
+        scheduleBotTurn();
     }
 }
 
@@ -657,7 +676,8 @@ function renderPlayerHand() {
     playerHand.innerHTML = '';
 
     // Dynamic overlap calculation to prevent scrolling
-    const containerWidth = Math.min(window.innerWidth - 40, 1000); // Approximate usable width
+    const measuredWidth = playerHand.clientWidth || (window.innerWidth - 40);
+    const containerWidth = Math.max(220, Math.min(measuredWidth, 1100));
     const cardWidth = 106;
     const numCards = player.hand.length;
 
@@ -671,8 +691,8 @@ function renderPlayerHand() {
         const totalOverlapNeeded = (numCards * cardWidth) - containerWidth;
         if (totalOverlapNeeded > 0) {
             const calculatedOverlap = -(totalOverlapNeeded / (numCards - 1));
-            // Cap the overlap so cards don't completely hide each other (e.g., max overlap 85px)
-            overlapMargin = Math.max(calculatedOverlap, -85);
+            // Keep at least a slim visible slice so even very large hands still fit.
+            overlapMargin = Math.max(calculatedOverlap, -94);
         } else {
             // Cards fit without overlap, or just use a nice default small overlap
             overlapMargin = -20;
