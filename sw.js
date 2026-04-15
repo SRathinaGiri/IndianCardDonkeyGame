@@ -1,16 +1,16 @@
-const CACHE_VERSION = 'v8';
+const CACHE_VERSION = 'v9';
 const CACHE_NAME = `donkey-game-cache-${CACHE_VERSION}`;
 
 const APP_SHELL = [
   './',
   'index.html',
-  'style.css?v=1.0.6',
-  'game.js?v=1.0.6',
+  'style.css?v=1.0.7',
+  'game.js?v=1.0.7',
   'cards.png',
   'card-back.png',
   'icon-192x192.png',
   'icon-512x512.png',
-  'manifest.json?v=1.0.6',
+  'manifest.json?v=1.0.7',
   'shuffle.mp3',
   'draw.mp3',
   'discard.mp3',

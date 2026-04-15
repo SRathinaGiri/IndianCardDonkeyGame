@@ -1,5 +1,5 @@
 // Sound assets
-const APP_VERSION = 'v1.0.6';
+const APP_VERSION = 'v1.0.7';
 
 const sounds = {
     click: new Audio('click.mp3'),
@@ -35,7 +35,10 @@ const state = {
         'Spades': false
     }, // Track which suits have been cut by someone
     discardPile: [], // Cards that have been cleared from tricks
-    pendingContinueAction: null
+    pendingContinueAction: null,
+    autoAdvanceTimeoutId: null,
+    autoAdvanceIntervalId: null,
+    autoAdvancePaused: false
 };
 
 // Card definitions
@@ -162,6 +165,8 @@ function initGame() {
     };
     state.discardPile = [];
     state.pendingContinueAction = null;
+    clearAutoAdvanceTimers();
+    state.autoAdvancePaused = false;
 
     document.getElementById('setup-screen').classList.add('hidden');
     document.getElementById('game-screen').classList.remove('hidden');
@@ -188,6 +193,47 @@ function playSound(name) {
 
 function updateStatus(message) {
     document.getElementById('status-message').textContent = message;
+}
+
+function clearAutoAdvanceTimers() {
+    if (state.autoAdvanceTimeoutId) {
+        clearTimeout(state.autoAdvanceTimeoutId);
+        state.autoAdvanceTimeoutId = null;
+    }
+    if (state.autoAdvanceIntervalId) {
+        clearInterval(state.autoAdvanceIntervalId);
+        state.autoAdvanceIntervalId = null;
+    }
+}
+
+function executePendingContinueAction() {
+    clearAutoAdvanceTimers();
+    hideContinueButton();
+    if (typeof state.pendingContinueAction === 'function') {
+        const action = state.pendingContinueAction;
+        state.pendingContinueAction = null;
+        state.autoAdvancePaused = false;
+        action();
+    }
+}
+
+function startAutoAdvancePause(seconds = 3) {
+    clearAutoAdvanceTimers();
+    state.autoAdvancePaused = false;
+
+    let remainingSeconds = seconds;
+    showContinueButton(`Pause (${remainingSeconds})`);
+
+    state.autoAdvanceIntervalId = setInterval(() => {
+        remainingSeconds -= 1;
+        if (remainingSeconds > 0) {
+            showContinueButton(`Pause (${remainingSeconds})`);
+        }
+    }, 1000);
+
+    state.autoAdvanceTimeoutId = setTimeout(() => {
+        executePendingContinueAction();
+    }, seconds * 1000);
 }
 
 // Game Logic
@@ -299,7 +345,11 @@ function prepareTrickResolution() {
     state.pendingContinueAction = () => {
         executeTrickResolution();
     };
-    showContinueButton('Continue');
+    if (state.fastMode) {
+        executePendingContinueAction();
+        return;
+    }
+    startAutoAdvancePause(3);
 }
 
 function executeTrickResolution() {
@@ -363,12 +413,18 @@ function executeTrickResolution() {
 }
 
 document.getElementById('continue-btn').addEventListener('click', () => {
-    hideContinueButton();
-    if (typeof state.pendingContinueAction === 'function') {
-        const action = state.pendingContinueAction;
-        state.pendingContinueAction = null;
-        action();
+    if (typeof state.pendingContinueAction !== 'function') {
+        return;
     }
+
+    if (!state.autoAdvancePaused) {
+        clearAutoAdvanceTimers();
+        state.autoAdvancePaused = true;
+        showContinueButton('Continue');
+        return;
+    }
+
+    executePendingContinueAction();
 });
 
 function advanceTurn() {
