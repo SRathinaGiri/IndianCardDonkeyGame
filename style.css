@@ -330,13 +330,13 @@ button:disabled {
 
 /* Player Area */
 #player-area {
-    height: 200px;
-    min-height: 160px;
+    height: 228px;
+    min-height: 228px;
     background-color: rgba(0, 0, 0, 0.4);
     display: flex;
     flex-direction: column;
     align-items: center;
-    padding: 10px;
+    padding: 10px 10px 16px;
 }
 
 .player-info {
@@ -360,9 +360,9 @@ button:disabled {
     align-items: flex-end;
     width: 100%;
     max-width: 1000px;
-    overflow: hidden;
-    padding-bottom: 20px; /* Room for hover effect */
-    height: 160px; /* Base height for cards */
+    overflow: visible;
+    padding-bottom: 24px; /* Room for hover effect */
+    height: 172px; /* Base height for cards */
 }
 
 /* Card Styling */
