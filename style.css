@@ -10,6 +10,7 @@ body {
     color: white;
     height: 100%;
     min-height: 100vh;
+    min-height: 100dvh;
     display: flex;
     flex-direction: column;
     overflow: hidden;
@@ -108,6 +109,7 @@ button:disabled {
 #game-screen {
     width: 100%;
     height: 100%;
+    min-height: 100dvh;
     display: flex;
     flex-direction: column;
 }
@@ -119,15 +121,20 @@ button:disabled {
     position: relative;
     overflow: hidden;
     width: 100%;
+    min-height: 0;
 }
 
 /* Opponents Area */
 #opponents-container {
     display: flex;
     justify-content: space-around;
+    align-items: center;
+    gap: 10px;
     padding: 10px;
     background-color: rgba(0, 0, 0, 0.3);
     min-height: 120px;
+    flex-wrap: nowrap;
+    overflow: hidden;
 }
 
 .opponent {
@@ -224,6 +231,7 @@ button:disabled {
 /* Center Area (Play area) */
 #center-area {
     flex: 1;
+    min-height: 0;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -250,16 +258,15 @@ button:disabled {
 
 #center-pile {
     position: relative;
-    width: 600px; /* Wide enough to fit many cards scattered */
+    width: min(600px, calc(100% - 40px));
     height: 180px;
     margin-top: 50px;
-    /* Cards will be absolute positioned inside */
 }
 
 .played-card {
     position: absolute;
     box-shadow: 3px 3px 6px rgba(0,0,0,0.6);
-    margin: 0;
+    margin: 0 !important;
 }
 
 .played-card-label {
@@ -304,6 +311,7 @@ button:disabled {
 /* Player Area */
 #player-area {
     height: 200px;
+    min-height: 160px;
     background-color: rgba(0, 0, 0, 0.4);
     display: flex;
     flex-direction: column;
@@ -332,7 +340,7 @@ button:disabled {
     align-items: flex-end;
     width: 100%;
     max-width: 1000px;
-    overflow: visible; /* Avoid scrollbars */
+    overflow: hidden;
     padding-bottom: 20px; /* Room for hover effect */
     height: 160px; /* Base height for cards */
 }
@@ -357,14 +365,6 @@ button:disabled {
 }
 
 /* Keep center pile cards slightly overlapped or adjust margin */
-#center-pile .card {
-    margin-left: -30px;
-}
-
-#center-pile .card:first-child {
-    margin-left: 0;
-}
-
 .card:hover {
     transform: translateY(-10px);
     z-index: 10;
@@ -435,6 +435,11 @@ button:disabled {
 
 /* Mobile Responsiveness (Targeting Mobile Landscape Mode) */
 @media screen and (max-height: 500px), screen and (max-width: 950px) {
+    #game-screen,
+    #game-table {
+        height: 100dvh;
+    }
+
     #status-message {
         font-size: 1.2rem;
         padding: 5px 15px;
@@ -453,7 +458,8 @@ button:disabled {
     }
 
     #player-area {
-        height: 120px;
+        height: 118px;
+        min-height: 118px;
         padding: 2px;
     }
 
@@ -463,13 +469,14 @@ button:disabled {
     }
 
     #player-hand {
-        height: 95px;
+        height: 92px;
+        padding-bottom: 8px;
     }
 
     #player-hand .card {
         transform: scale(0.65);
         transform-origin: bottom center;
-        margin-top: -30px;
+        margin-top: -38px;
     }
 
     #player-hand .card:hover {
@@ -480,9 +487,15 @@ button:disabled {
         transform: scale(0.75) translateY(-15px);
     }
 
+    #opponents-container {
+        min-height: 72px;
+        padding: 4px 6px;
+        gap: 6px;
+    }
+
     .opponent {
         min-width: 60px;
-        padding: 5px;
+        padding: 4px;
     }
 
     .opponent-name {
@@ -504,12 +517,19 @@ button:disabled {
 
     #center-pile {
         width: 100%;
-        height: 120px;
-        margin-top: 10px;
+        max-width: calc(100% - 20px);
+        height: 94px;
+        margin-top: 0;
     }
 
     #center-area .card {
-        transform: scale(0.65);
+        transform: scale(0.58);
+        transform-origin: top left;
+    }
+
+    .played-card-label {
+        font-size: 0.65rem;
+        bottom: -16px;
     }
 
     #pile-stock {

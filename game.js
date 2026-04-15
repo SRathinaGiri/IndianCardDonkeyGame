@@ -32,7 +32,8 @@ const state = {
         'Clubs': false,
         'Spades': false
     }, // Track which suits have been cut by someone
-    discardPile: [] // Cards that have been cleared from tricks
+    discardPile: [], // Cards that have been cleared from tricks
+    pendingContinueAction: null
 };
 
 // Card definitions
@@ -158,9 +159,11 @@ function initGame() {
         'Spades': false
     };
     state.discardPile = [];
+    state.pendingContinueAction = null;
 
     document.getElementById('setup-screen').classList.add('hidden');
     document.getElementById('game-screen').classList.remove('hidden');
+    document.getElementById('continue-btn').classList.add('hidden');
 
     renderGame();
     updateStatus(`${state.players[state.currentTurnIndex].name} starts (has A♠)`);
@@ -259,30 +262,34 @@ function playCard(playerIndex, cardIndex) {
 
     if (state.gameOver) return;
 
-    if (state.fastMode) {
-        resolveTurn();
-    } else {
-        state.animationsPlaying = true;
-
-        setTimeout(() => {
-            resolveTurn();
-        }, 1500); // Increased from 1000 to give more time to see the played card
-    }
+    queueContinueAfterPlay(player);
 }
 
-function resolveTurn() {
+function queueContinueAfterPlay(player) {
     state.animationsPlaying = false;
+    const playedCard = cardLabelFromPile();
 
-    // Get active players count
     const activePlayersCount = state.players.filter(p => !p.isSafe).length;
+    const trickFinished = state.isCut || state.centerPile.length === activePlayersCount;
 
-    // If cut happened, or everyone has played
-    if (state.isCut || state.centerPile.length === activePlayersCount) {
+    if (trickFinished) {
         prepareTrickResolution();
-    } else {
-        // Next player's turn
-        advanceTurn();
+        return;
     }
+
+    const nextPlayerIndex = findNextActivePlayerIndex(player.id);
+    const nextPlayer = state.players[nextPlayerIndex];
+    updateStatus(`${player.name} played ${formatCard(playedCard)}. Continue to ${nextPlayer.id === 'player-0' ? 'your turn' : `${nextPlayer.name}'s turn`}.`);
+
+    if (state.fastMode) {
+        advanceTurn();
+        return;
+    }
+
+    state.pendingContinueAction = () => {
+        advanceTurn();
+    };
+    showContinueButton('Continue');
 }
 
 function prepareTrickResolution() {
@@ -299,7 +306,10 @@ function prepareTrickResolution() {
     if (state.fastMode) {
         executeTrickResolution();
     } else {
-        document.getElementById('continue-btn').classList.remove('hidden');
+        state.pendingContinueAction = () => {
+            executeTrickResolution();
+        };
+        showContinueButton('Continue');
     }
 }
 
@@ -364,14 +374,16 @@ function executeTrickResolution() {
 }
 
 document.getElementById('continue-btn').addEventListener('click', () => {
-    document.getElementById('continue-btn').classList.add('hidden');
-    executeTrickResolution();
+    hideContinueButton();
+    if (typeof state.pendingContinueAction === 'function') {
+        const action = state.pendingContinueAction;
+        state.pendingContinueAction = null;
+        action();
+    }
 });
 
 function advanceTurn() {
-    do {
-        state.currentTurnIndex = (state.currentTurnIndex + 1) % state.numPlayers;
-    } while (state.players[state.currentTurnIndex].isSafe);
+    state.currentTurnIndex = findNextActivePlayerIndex(state.players[state.currentTurnIndex].id);
 
     updateActivePlayer();
     const currentPlayer = state.players[state.currentTurnIndex];
@@ -385,6 +397,42 @@ function advanceTurn() {
             setTimeout(playBotTurn, 1500); // Increased delay
         }
     }
+}
+
+function findNextActivePlayerIndex(currentPlayerId) {
+    let nextIndex = state.players.findIndex(player => player.id === currentPlayerId);
+
+    do {
+        nextIndex = (nextIndex + 1) % state.numPlayers;
+    } while (state.players[nextIndex].isSafe);
+
+    return nextIndex;
+}
+
+function showContinueButton(label = 'Continue') {
+    const continueBtn = document.getElementById('continue-btn');
+    continueBtn.textContent = label;
+    continueBtn.classList.remove('hidden');
+}
+
+function hideContinueButton() {
+    document.getElementById('continue-btn').classList.add('hidden');
+}
+
+function cardLabelFromPile() {
+    if (state.centerPile.length === 0) return null;
+    return state.centerPile[state.centerPile.length - 1].card;
+}
+
+function formatCard(card) {
+    if (!card) return 'a card';
+    const suitSymbols = {
+        Hearts: '♥',
+        Diamonds: '♦',
+        Clubs: '♣',
+        Spades: '♠'
+    };
+    return `${card.rank}${suitSymbols[card.suit] || ''}`;
 }
 
 function checkGameOver() {
@@ -624,42 +672,24 @@ function renderCenterPile() {
     const numCards = state.centerPile.length;
     if (numCards === 0) return;
 
-    // Spread cards across the container width
-    const containerWidth = 600; // Match CSS
+    const containerWidth = pile.clientWidth || 600;
     const cardWidth = 106;
-
-    // Calculate the spacing between cards
-    // If only 1 card, put it in center.
-    // If multiple, spread them so they are fully visible but maybe slightly overlapped if too many.
-    let spacing = cardWidth + 10; // Default spacing: slightly more than card width
-
-    // If they would exceed container, compress them slightly
-    if ((numCards * cardWidth) + ((numCards - 1) * 10) > containerWidth) {
-        spacing = (containerWidth - cardWidth) / (numCards - 1);
-    }
-
-    // Calculate total width used by the spread
+    const maxGap = 22;
+    const totalSpacing = Math.max(0, containerWidth - cardWidth);
+    const spacing = numCards > 1 ? Math.min(cardWidth + maxGap, totalSpacing / (numCards - 1)) : 0;
     const totalWidth = cardWidth + ((numCards - 1) * spacing);
-
-    // Start drawing from this offset to center the group in the container
-    const startOffsetX = (containerWidth - totalWidth) / 2;
+    const startOffsetX = Math.max(0, (containerWidth - totalWidth) / 2);
 
     for (let i = 0; i < numCards; i++) {
         const item = state.centerPile[i];
         const cardEl = createCardElement(item.card);
         cardEl.className = 'card played-card';
 
-        // Base X position
         const baseX = startOffsetX + (i * spacing);
+        const centeredTop = Math.max(0, (pile.clientHeight - 144) / 2);
 
-        // Add random "thrown" messiness
-        const offsetX = (Math.random() * 16) - 8;
-        const offsetY = (Math.random() * 20) - 10;
-        const rotation = (Math.random() * 16) - 8;
-
-        cardEl.style.left = `${baseX + offsetX}px`;
-        cardEl.style.top = `${20 + offsetY}px`; // 20px base top offset
-        cardEl.style.transform = `rotate(${rotation}deg)`;
+        cardEl.style.left = `${baseX}px`;
+        cardEl.style.top = `${centeredTop}px`;
         cardEl.style.zIndex = i + 1;
 
         const label = document.createElement('div');
