@@ -1,5 +1,5 @@
 // Sound assets
-const APP_VERSION = 'v1.0.1';
+const APP_VERSION = 'v1.0.2';
 
 const sounds = {
     click: new Audio('click.mp3'),
@@ -166,7 +166,6 @@ function initGame() {
     document.getElementById('setup-screen').classList.add('hidden');
     document.getElementById('game-screen').classList.remove('hidden');
     document.getElementById('continue-btn').classList.add('hidden');
-    document.getElementById('app-version').textContent = APP_VERSION;
 
     renderGame();
     updateStatus(`${state.players[state.currentTurnIndex].name} leads first with A♠`);
@@ -900,3 +899,5 @@ document.getElementById('restart-btn').addEventListener('click', () => {
     document.getElementById('game-over-screen').classList.add('hidden');
     document.getElementById('setup-screen').classList.remove('hidden');
 });
+
+document.getElementById('app-version').textContent = APP_VERSION;

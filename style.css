@@ -125,17 +125,18 @@ button:disabled {
 }
 
 #app-version {
-    position: absolute;
-    left: 14px;
-    bottom: 210px;
-    z-index: 30;
+    position: fixed;
+    left: 10px;
+    bottom: 10px;
+    z-index: 10050;
     padding: 4px 8px;
     font-size: 0.75rem;
     color: rgba(255, 255, 255, 0.9);
-    background: rgba(0, 0, 0, 0.45);
+    background: rgba(0, 0, 0, 0.65);
     border: 1px solid rgba(255, 255, 255, 0.18);
     border-radius: 999px;
     letter-spacing: 0.04em;
+    pointer-events: none;
 }
 
 /* Opponents Area */
@@ -470,7 +471,7 @@ button:disabled {
 
     #app-version {
         left: 8px;
-        bottom: 124px;
+        bottom: 8px;
         font-size: 0.62rem;
         padding: 3px 6px;
     }
