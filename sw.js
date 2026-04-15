@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'v1';
+const CACHE_VERSION = 'v2';
 const CACHE_NAME = `donkey-game-cache-${CACHE_VERSION}`;
 
 const APP_SHELL = [
@@ -39,7 +39,17 @@ self.addEventListener('activate', event => {
 
 self.addEventListener('fetch', event => {
   const { request } = event;
-  if (request.mode === 'navigate' || (request.headers.get('accept') || '').includes('text/html')) {
+
+  if (request.method !== 'GET') {
+    return;
+  }
+
+  const requestUrl = new URL(request.url);
+  const isSameOrigin = requestUrl.origin === self.location.origin;
+  const isHtmlRequest = request.mode === 'navigate' || (request.headers.get('accept') || '').includes('text/html');
+
+  // Use network-first for same-origin assets so UI and logic updates are not stuck behind stale caches.
+  if (isHtmlRequest || isSameOrigin) {
     event.respondWith(
       fetch(request)
         .then(response => {
