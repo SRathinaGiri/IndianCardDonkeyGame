@@ -124,6 +124,20 @@ button:disabled {
     min-height: 0;
 }
 
+#app-version {
+    position: absolute;
+    left: 14px;
+    bottom: 210px;
+    z-index: 30;
+    padding: 4px 8px;
+    font-size: 0.75rem;
+    color: rgba(255, 255, 255, 0.9);
+    background: rgba(0, 0, 0, 0.45);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    border-radius: 999px;
+    letter-spacing: 0.04em;
+}
+
 /* Opponents Area */
 #opponents-container {
     display: flex;
@@ -237,7 +251,7 @@ button:disabled {
     align-items: center;
     justify-content: center;
     position: relative;
-    padding: 72px 0 136px;
+    padding: 72px 18px 76px;
 }
 
 #status-message {
@@ -259,9 +273,9 @@ button:disabled {
 
 #center-pile {
     position: relative;
-    width: min(720px, calc(100% - 60px));
-    height: 250px;
-    margin-top: 12px;
+    width: min(1240px, calc(100% - 40px));
+    height: 170px;
+    margin-top: 8px;
     overflow: visible;
 }
 
@@ -289,9 +303,8 @@ button:disabled {
 
 #continue-btn {
     position: absolute;
-    left: 50%;
-    bottom: 26px;
-    transform: translateX(-50%);
+    right: 18px;
+    bottom: 12px;
     z-index: 10000;
     padding: 15px 30px;
     font-size: 1.5rem;
@@ -309,9 +322,9 @@ button:disabled {
 }
 
 @keyframes pulse {
-    0% { transform: translateX(-50%) scale(1); }
-    50% { transform: translateX(-50%) scale(1.05); }
-    100% { transform: translateX(-50%) scale(1); }
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
 }
 
 /* Player Area */
@@ -455,12 +468,20 @@ button:disabled {
         max-width: 90%;
     }
 
+    #app-version {
+        left: 8px;
+        bottom: 124px;
+        font-size: 0.62rem;
+        padding: 3px 6px;
+    }
+
     #continue-btn {
-        bottom: 10px;
+        right: 10px;
+        bottom: 8px;
         font-size: 1rem;
         padding: 9px 16px;
         z-index: 10000;
-        max-width: calc(100% - 24px);
+        max-width: min(42vw, 220px);
         white-space: nowrap;
     }
 
@@ -525,12 +546,12 @@ button:disabled {
     #center-pile {
         width: 100%;
         max-width: calc(100% - 20px);
-        height: 150px;
+        height: 88px;
         margin-top: 0;
     }
 
     #center-area {
-        padding: 44px 0 96px;
+        padding: 44px 8px 72px;
     }
 
     #center-area .played-card {

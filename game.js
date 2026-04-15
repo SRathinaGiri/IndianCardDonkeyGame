@@ -1,4 +1,6 @@
 // Sound assets
+const APP_VERSION = 'v1.0.1';
+
 const sounds = {
     click: new Audio('click.mp3'),
     discard: new Audio('discard.mp3'),
@@ -164,6 +166,7 @@ function initGame() {
     document.getElementById('setup-screen').classList.add('hidden');
     document.getElementById('game-screen').classList.remove('hidden');
     document.getElementById('continue-btn').classList.add('hidden');
+    document.getElementById('app-version').textContent = APP_VERSION;
 
     renderGame();
     updateStatus(`${state.players[state.currentTurnIndex].name} leads first with A♠`);
@@ -660,13 +663,14 @@ function renderCenterPile() {
     if (numCards === 0) return;
 
     const containerWidth = pile.clientWidth || 600;
-    const containerHeight = pile.clientHeight || 220;
     const cardWidth = 106;
+    const containerHeight = pile.clientHeight || 180;
     const cardHeight = 144;
-    const spacing = numCards > 1 ? Math.min(92, Math.max(68, (containerWidth - cardWidth) / (numCards + 0.35))) : 0;
+    const usableWidth = Math.max(cardWidth, containerWidth - 12);
+    const spacing = numCards > 1 ? Math.min(92, Math.max(60, (usableWidth - cardWidth) / (numCards - 1))) : 0;
     const totalWidth = cardWidth + ((numCards - 1) * spacing);
     const startOffsetX = Math.max(0, (containerWidth - totalWidth) / 2);
-    const midIndex = (numCards - 1) / 2;
+    const baseTop = Math.max(0, ((containerHeight - cardHeight) / 2) - 8);
 
     for (let i = 0; i < numCards; i++) {
         const item = state.centerPile[i];
@@ -674,13 +678,10 @@ function renderCenterPile() {
         cardEl.className = 'card played-card';
 
         const baseX = startOffsetX + (i * spacing);
-        const distanceFromMiddle = i - midIndex;
-        const arcLift = Math.abs(distanceFromMiddle) * 12;
-        const baseTop = Math.max(8, ((containerHeight - cardHeight) / 2) - 26 - arcLift);
         const scatterSeed = `${item.playerId}-${item.card.suit}-${item.card.rank}-${i}`;
-        const xJitter = Math.round(seededScatter(scatterSeed, 6));
-        const yJitter = Math.round(seededScatter(`${scatterSeed}-y`, 4));
-        const tilt = (distanceFromMiddle * 4.5) + seededScatter(`${scatterSeed}-r`, 3);
+        const xJitter = Math.round(seededScatter(scatterSeed, 5));
+        const yJitter = Math.round(seededScatter(`${scatterSeed}-y`, 5));
+        const tilt = seededScatter(`${scatterSeed}-r`, 6);
 
         cardEl.style.left = `${baseX}px`;
         cardEl.style.top = `${baseTop}px`;
