@@ -1,5 +1,5 @@
 // Sound assets
-const APP_VERSION = 'v1.4.1';
+const APP_VERSION = 'v1.4.2';
 const PLAYER_STATS_KEY = 'playerCareerStats';
 
 const sounds = {
@@ -491,10 +491,17 @@ function prepareTrickResolution() {
         updateStatus(`${state.players[winnerIndex].name} leads the next round.`);
     }
 
-    // Show continue button to pause before clearing the table
     state.pendingContinueAction = () => {
         executeTrickResolution();
     };
+
+    const humanPlayer = state.players.find(player => player.id === 'player-0');
+    if (humanPlayer?.isSafe) {
+        executePendingContinueAction();
+        return;
+    }
+
+    // Show continue button to pause before clearing the table
     startAutoAdvancePause(3);
 }
 
