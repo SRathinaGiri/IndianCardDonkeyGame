@@ -1,5 +1,5 @@
 // Sound assets
-const APP_VERSION = 'v1.2.0';
+const APP_VERSION = 'v1.3.0';
 
 const sounds = {
     click: new Audio('click.mp3'),
@@ -178,6 +178,10 @@ function initGame() {
     clearAutoAdvanceTimers();
     clearBotTurnTimeout();
     state.autoAdvancePaused = false;
+    state.players.forEach(player => {
+        player.finishPosition = null;
+        player.safeOrder = null;
+    });
 
     document.getElementById('setup-screen').classList.add('hidden');
     document.getElementById('game-screen').classList.remove('hidden');
@@ -360,6 +364,7 @@ function playCard(playerIndex, cardIndex) {
     // Check if player is safe
     if (player.hand.length === 0 && !player.isSafe) {
         player.isSafe = true;
+        player.safeOrder = state.players.filter(p => p.isSafe).length;
         playSound('win');
         updateStatus(`${player.name} is safe!`);
         showSafeCelebration(player.name);
@@ -731,6 +736,15 @@ function checkGameOver() {
         state.gameOver = true;
         state.donkey = activePlayers[0];
 
+        const safePlayers = state.players
+            .filter(p => p.isSafe)
+            .sort((a, b) => (a.safeOrder ?? Number.MAX_SAFE_INTEGER) - (b.safeOrder ?? Number.MAX_SAFE_INTEGER));
+
+        safePlayers.forEach((player, index) => {
+            player.finishPosition = index + 1;
+        });
+        state.donkey.finishPosition = state.players.length;
+
         // Update score
         state.donkey.donkeyCount++;
         let savedScores = {};
@@ -747,6 +761,7 @@ function checkGameOver() {
             goScreen.classList.remove('hidden');
 
             const goMessage = document.getElementById('game-over-message');
+            renderFinalStandings();
             if (state.donkey.isBot) {
                 goMessage.textContent = `${state.donkey.name} is the Donkey! You survived.`;
                 setDonkeyLossAnimation(false);
@@ -992,6 +1007,60 @@ function renderCenterPile() {
 
         pile.appendChild(cardEl);
     }
+}
+
+function getFinalStandings() {
+    const safePlayers = state.players
+        .filter(player => player.isSafe)
+        .sort((a, b) => {
+            const orderA = a.safeOrder ?? Number.MAX_SAFE_INTEGER;
+            const orderB = b.safeOrder ?? Number.MAX_SAFE_INTEGER;
+            if (orderA !== orderB) return orderA - orderB;
+            return a.order - b.order;
+        });
+
+    if (!state.donkey) {
+        return safePlayers;
+    }
+
+    return [...safePlayers, state.donkey];
+}
+
+function renderFinalStandings() {
+    const standingsEl = document.getElementById('final-standings');
+    if (!standingsEl) return;
+
+    const standings = getFinalStandings();
+    standingsEl.innerHTML = '';
+
+    standings.forEach((player, index) => {
+        const row = document.createElement('div');
+        row.className = 'final-standing-row';
+        if (player.id === 'player-0') row.classList.add('you');
+        if (player.id === state.donkey?.id) row.classList.add('donkey');
+        if (index === 0) row.classList.add('winner');
+
+        const position = document.createElement('span');
+        position.className = 'final-standing-position';
+        position.textContent = `#${index + 1}`;
+
+        const name = document.createElement('span');
+        name.className = 'final-standing-name';
+        name.textContent = player.id === 'player-0' ? 'You' : player.name;
+
+        const result = document.createElement('span');
+        result.className = 'final-standing-result';
+        if (player.id === state.donkey?.id) {
+            result.textContent = 'Donkey';
+        } else {
+            result.textContent = 'Safe';
+        }
+
+        row.appendChild(position);
+        row.appendChild(name);
+        row.appendChild(result);
+        standingsEl.appendChild(row);
+    });
 }
 
 function seededScatter(seed, amplitude) {

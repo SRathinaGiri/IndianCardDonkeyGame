@@ -475,6 +475,63 @@ button:disabled {
     margin-bottom: 18px;
 }
 
+.final-standings {
+    width: min(420px, 100%);
+    margin: 18px 0 22px;
+    padding: 14px;
+    border-radius: 18px;
+    background: rgba(8, 28, 15, 0.78);
+    border: 1px solid rgba(237, 197, 96, 0.35);
+    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.24);
+}
+
+.final-standing-row {
+    display: grid;
+    grid-template-columns: 56px 1fr auto;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    border-radius: 14px;
+    color: rgba(255, 255, 255, 0.88);
+}
+
+.final-standing-row + .final-standing-row {
+    margin-top: 8px;
+}
+
+.final-standing-row.winner {
+    background: rgba(241, 206, 111, 0.16);
+    border: 1px solid rgba(241, 206, 111, 0.5);
+}
+
+.final-standing-row.you {
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.18);
+}
+
+.final-standing-row.donkey {
+    background: rgba(163, 40, 28, 0.18);
+    border: 1px solid rgba(219, 102, 84, 0.45);
+}
+
+.final-standing-position {
+    color: #ffe39b;
+    font-weight: 800;
+    text-align: left;
+}
+
+.final-standing-name {
+    font-weight: 700;
+    text-align: left;
+}
+
+.final-standing-result {
+    font-size: 0.88rem;
+    font-weight: 700;
+    color: rgba(255, 255, 255, 0.72);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+}
+
 .played-card {
     position: relative;
     flex: 0 0 auto;
@@ -712,6 +769,25 @@ button:disabled {
 
     .brand-lockup-text p {
         font-size: 0.85rem;
+    }
+
+    .final-standings {
+        padding: 10px;
+        border-radius: 14px;
+        margin: 12px 0 16px;
+    }
+
+    .final-standing-row {
+        grid-template-columns: 44px 1fr auto;
+        gap: 8px;
+        padding: 8px 10px;
+        border-radius: 10px;
+    }
+
+    .final-standing-position,
+    .final-standing-name,
+    .final-standing-result {
+        font-size: 0.78rem;
     }
 
     #game-brand-badge {
