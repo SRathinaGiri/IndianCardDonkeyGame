@@ -147,9 +147,9 @@ button:disabled {
     gap: 10px;
     padding: 10px;
     background-color: rgba(0, 0, 0, 0.3);
-    min-height: 120px;
+    min-height: 150px;
     flex-wrap: nowrap;
-    overflow: hidden;
+    overflow: visible;
 }
 
 .opponent {
@@ -201,8 +201,14 @@ button:disabled {
 
 .opponent-cards {
     position: relative;
-    height: 60px;
-    width: 40px;
+    height: 96px;
+    width: 76px;
+    overflow: visible;
+}
+
+.opponent-cards .card-back {
+    left: 50%;
+    transform: translateX(-50%);
 }
 
 /* Pile Stock Info */
@@ -517,7 +523,7 @@ button:disabled {
     }
 
     #opponents-container {
-        min-height: 72px;
+        min-height: 82px;
         padding: 4px 6px;
         gap: 6px;
     }
@@ -539,8 +545,13 @@ button:disabled {
         top: -10px;
     }
 
+    .opponent-cards {
+        height: 54px;
+        width: 42px;
+    }
+
     .opponent-cards .card-back {
-        transform: scale(0.5);
+        transform: translateX(-50%) scale(0.5);
         transform-origin: top center;
     }
 

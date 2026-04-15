@@ -1,5 +1,5 @@
 // Sound assets
-const APP_VERSION = 'v1.0.4';
+const APP_VERSION = 'v1.0.5';
 
 const sounds = {
     click: new Audio('click.mp3'),
@@ -665,11 +665,11 @@ function renderCenterPile() {
     const cardWidth = 106;
     const containerHeight = pile.clientHeight || 180;
     const cardHeight = 144;
-    const usableWidth = Math.max(cardWidth, containerWidth - 24);
-    const spacing = numCards > 1 ? Math.min(88, Math.max(68, (usableWidth - cardWidth) / (numCards - 1))) : 0;
+    const usableWidth = Math.max(cardWidth, containerWidth - 40);
+    const spacing = numCards > 1 ? Math.min(118, Math.max(82, (usableWidth - cardWidth) / (numCards - 1))) : 0;
     const totalWidth = cardWidth + ((numCards - 1) * spacing);
     const startOffsetX = Math.max(0, (containerWidth - totalWidth) / 2);
-    const baseTop = Math.max(0, ((containerHeight - cardHeight) / 2) - 8);
+    const baseTop = Math.max(6, Math.round((containerHeight - cardHeight) / 2) - 6);
 
     for (let i = 0; i < numCards; i++) {
         const item = state.centerPile[i];
@@ -678,9 +678,9 @@ function renderCenterPile() {
 
         const baseX = startOffsetX + (i * spacing);
         const scatterSeed = `${item.playerId}-${item.card.suit}-${item.card.rank}-${i}`;
-        const xJitter = Math.round(seededScatter(scatterSeed, 3));
+        const xJitter = Math.round(seededScatter(scatterSeed, 1));
         const yJitter = 0;
-        const tilt = seededScatter(`${scatterSeed}-r`, 3);
+        const tilt = seededScatter(`${scatterSeed}-r`, 1.5);
 
         cardEl.style.left = `${baseX}px`;
         cardEl.style.top = `${baseTop}px`;
