@@ -281,11 +281,6 @@ function queueContinueAfterPlay(player) {
     const nextPlayer = state.players[nextPlayerIndex];
     updateStatus(`${player.name} played ${formatCard(playedCard)}. Continue to ${nextPlayer.id === 'player-0' ? 'your turn' : `${nextPlayer.name}'s turn`}.`);
 
-    if (state.fastMode) {
-        advanceTurn();
-        return;
-    }
-
     state.pendingContinueAction = () => {
         advanceTurn();
     };
@@ -303,14 +298,10 @@ function prepareTrickResolution() {
     }
 
     // Show continue button to pause before clearing the table
-    if (state.fastMode) {
+    state.pendingContinueAction = () => {
         executeTrickResolution();
-    } else {
-        state.pendingContinueAction = () => {
-            executeTrickResolution();
-        };
-        showContinueButton('Continue');
-    }
+    };
+    showContinueButton('Continue');
 }
 
 function executeTrickResolution() {
