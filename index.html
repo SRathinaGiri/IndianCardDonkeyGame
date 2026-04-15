@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Indian Card Game Donkey (Bhabhi)</title>
-    <link rel="stylesheet" href="style.css?v=1.3.0">
-    <link rel="manifest" href="manifest.json?v=1.3.0">
+    <link rel="stylesheet" href="style.css?v=1.4.0">
+    <link rel="manifest" href="manifest.json?v=1.4.0">
     <link rel="icon" type="image/png" href="icon-192x192.png">
     <meta name="theme-color" content="#005000">
 </head>
@@ -42,6 +42,10 @@
             </div>
             <button id="start-btn">Start Game</button>
             <button id="install-btn" class="hidden" style="margin-top: 10px; background-color: #2ecc71;">Install App</button>
+        </div>
+        <div class="stats-panel">
+            <h2>Your Stats</h2>
+            <div id="setup-stats" class="stats-grid"></div>
         </div>
         <div class="instructions">
             <h2>How to Play</h2>
@@ -104,9 +108,13 @@
         <h1 id="game-over-title">Game Over!</h1>
         <p id="game-over-message"></p>
         <div id="final-standings" class="final-standings"></div>
+        <div class="stats-panel compact">
+            <h2>Career Stats</h2>
+            <div id="game-over-stats" class="stats-grid"></div>
+        </div>
         <button id="restart-btn">Play Again</button>
     </div>
 
-    <script src="game.js?v=1.3.0"></script>
+    <script src="game.js?v=1.4.0"></script>
 </body>
 </html>

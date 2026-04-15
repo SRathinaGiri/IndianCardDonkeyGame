@@ -1,5 +1,6 @@
 // Sound assets
-const APP_VERSION = 'v1.3.0';
+const APP_VERSION = 'v1.4.0';
+const PLAYER_STATS_KEY = 'playerCareerStats';
 
 const sounds = {
     click: new Audio('click.mp3'),
@@ -208,6 +209,90 @@ function playSound(name) {
 
 function updateStatus(message) {
     document.getElementById('status-message').textContent = message;
+}
+
+function loadPlayerStats() {
+    const defaults = {
+        gamesPlayed: 0,
+        timesDonkey: 0,
+        survivedGames: 0,
+        totalFinish: 0,
+        longestSurvivalStreak: 0,
+        currentSurvivalStreak: 0
+    };
+
+    try {
+        const raw = localStorage.getItem(PLAYER_STATS_KEY);
+        if (!raw) return defaults;
+        return { ...defaults, ...JSON.parse(raw) };
+    } catch (e) {
+        return defaults;
+    }
+}
+
+function savePlayerStats(stats) {
+    try {
+        localStorage.setItem(PLAYER_STATS_KEY, JSON.stringify(stats));
+    } catch (e) {}
+}
+
+function renderStatsInto(elementId) {
+    const el = document.getElementById(elementId);
+    if (!el) return;
+
+    const stats = loadPlayerStats();
+    const survivalRate = stats.gamesPlayed > 0 ? Math.round((stats.survivedGames / stats.gamesPlayed) * 100) : 0;
+    const averageFinish = stats.gamesPlayed > 0 ? (stats.totalFinish / stats.gamesPlayed).toFixed(2) : '0.00';
+
+    const items = [
+        ['Games', stats.gamesPlayed],
+        ['Donkey', stats.timesDonkey],
+        ['Survival', `${survivalRate}%`],
+        ['Avg Finish', averageFinish],
+        ['Best Streak', stats.longestSurvivalStreak]
+    ];
+
+    el.innerHTML = '';
+    for (let [label, value] of items) {
+        const card = document.createElement('div');
+        card.className = 'stat-card';
+
+        const valueEl = document.createElement('strong');
+        valueEl.textContent = `${value}`;
+
+        const labelEl = document.createElement('span');
+        labelEl.textContent = label;
+
+        card.appendChild(valueEl);
+        card.appendChild(labelEl);
+        el.appendChild(card);
+    }
+}
+
+function renderStatsPanels() {
+    renderStatsInto('setup-stats');
+    renderStatsInto('game-over-stats');
+}
+
+function updatePlayerCareerStats() {
+    const you = state.players[0];
+    if (!you || !you.finishPosition) return;
+
+    const stats = loadPlayerStats();
+    stats.gamesPlayed += 1;
+    stats.totalFinish += you.finishPosition;
+
+    if (state.donkey?.id === 'player-0') {
+        stats.timesDonkey += 1;
+        stats.currentSurvivalStreak = 0;
+    } else {
+        stats.survivedGames += 1;
+        stats.currentSurvivalStreak += 1;
+        stats.longestSurvivalStreak = Math.max(stats.longestSurvivalStreak, stats.currentSurvivalStreak);
+    }
+
+    savePlayerStats(stats);
+    renderStatsPanels();
 }
 
 function showSafeCelebration(playerName) {
@@ -511,10 +596,12 @@ function showContinueButton(label = 'Continue') {
     const continueBtn = document.getElementById('continue-btn');
     continueBtn.textContent = label;
     continueBtn.classList.remove('hidden');
+    document.getElementById('center-pile').classList.add('resolution-pending');
 }
 
 function hideContinueButton() {
     document.getElementById('continue-btn').classList.add('hidden');
+    document.getElementById('center-pile').classList.remove('resolution-pending');
 }
 
 function cardLabelFromPile() {
@@ -762,6 +849,7 @@ function checkGameOver() {
 
             const goMessage = document.getElementById('game-over-message');
             renderFinalStandings();
+            updatePlayerCareerStats();
             if (state.donkey.isBot) {
                 goMessage.textContent = `${state.donkey.name} is the Donkey! You survived.`;
                 setDonkeyLossAnimation(false);
@@ -1171,3 +1259,4 @@ document.getElementById('restart-btn').addEventListener('click', () => {
 });
 
 document.getElementById('app-version').textContent = APP_VERSION;
+renderStatsPanels();
