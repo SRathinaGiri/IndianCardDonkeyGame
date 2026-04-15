@@ -160,18 +160,18 @@ button:disabled {
     z-index: 25;
     display: flex;
     align-items: center;
-    gap: 10px;
-    padding: 10px 12px;
-    border-radius: 18px;
+    gap: 14px;
+    padding: 12px 16px;
+    border-radius: 22px;
     background: rgba(7, 32, 17, 0.78);
     border: 1px solid rgba(233, 198, 105, 0.45);
     box-shadow: 0 8px 18px rgba(0, 0, 0, 0.28);
 }
 
 .game-brand-badge-icon {
-    width: 42px;
-    height: 42px;
-    border-radius: 11px;
+    width: 56px;
+    height: 56px;
+    border-radius: 14px;
     flex: 0 0 auto;
 }
 
@@ -183,14 +183,121 @@ button:disabled {
 
 .game-brand-badge-text strong {
     color: #ffe39b;
-    font-size: 0.95rem;
+    font-size: 1.15rem;
 }
 
 .game-brand-badge-text span {
     color: rgba(255, 255, 255, 0.72);
-    font-size: 0.72rem;
+    font-size: 0.8rem;
     text-transform: uppercase;
     letter-spacing: 0.08em;
+}
+
+#safe-celebration {
+    position: absolute;
+    inset: 0;
+    z-index: 32;
+    pointer-events: none;
+}
+
+.safe-celebration-burst {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 320px;
+    height: 320px;
+    transform: translate(-50%, -50%);
+    border-radius: 50%;
+    background:
+        radial-gradient(circle, rgba(255, 227, 122, 0.55) 0%, rgba(255, 227, 122, 0.12) 45%, rgba(255, 227, 122, 0) 72%),
+        conic-gradient(from 0deg, rgba(255, 236, 154, 0.85), rgba(255, 236, 154, 0) 22%, rgba(255, 236, 154, 0.75) 32%, rgba(255, 236, 154, 0) 46%, rgba(255, 236, 154, 0.8) 58%, rgba(255, 236, 154, 0) 72%, rgba(255, 236, 154, 0.8) 86%, rgba(255, 236, 154, 0) 100%);
+    filter: blur(0.2px);
+    opacity: 0;
+}
+
+.safe-celebration-badge {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    min-width: 220px;
+    padding: 18px 26px;
+    transform: translate(-50%, -50%) scale(0.75);
+    border-radius: 26px;
+    background: rgba(18, 44, 20, 0.9);
+    border: 2px solid rgba(255, 232, 149, 0.85);
+    box-shadow: 0 18px 32px rgba(0, 0, 0, 0.28);
+    opacity: 0;
+}
+
+.safe-celebration-label {
+    color: #fff0a6;
+    font-size: 2rem;
+    font-weight: 800;
+    letter-spacing: 0.1em;
+}
+
+.safe-celebration-name {
+    color: rgba(255, 255, 255, 0.88);
+    font-size: 1rem;
+    font-weight: 700;
+}
+
+#safe-celebration.show .safe-celebration-burst {
+    animation: safeBurst 1.35s ease-out forwards;
+}
+
+#safe-celebration.show .safe-celebration-badge {
+    animation: safeBadge 1.35s ease-out forwards;
+}
+
+#donkey-loss-animation {
+    position: relative;
+    width: 190px;
+    height: 210px;
+    margin: 6px auto 18px;
+}
+
+.donkey-loss-card {
+    position: absolute;
+    left: 50%;
+    top: 0;
+    width: 130px;
+    height: 182px;
+    transform: translateX(-50%);
+    border-radius: 18px;
+    border: 3px solid #dfc17c;
+    background: linear-gradient(180deg, #fff8e8 0%, #efe6c7 100%);
+    color: #111;
+    font-size: 3.5rem;
+    font-weight: 800;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.28);
+}
+
+.donkey-loss-shadow {
+    position: absolute;
+    left: 50%;
+    bottom: 0;
+    width: 120px;
+    height: 22px;
+    transform: translateX(-50%);
+    border-radius: 50%;
+    background: rgba(0, 0, 0, 0.28);
+    filter: blur(10px);
+}
+
+#donkey-loss-animation.show .donkey-loss-card {
+    animation: donkeyCardDrop 1.2s cubic-bezier(.22,.89,.28,1.15) forwards, donkeyCardShake 1.6s ease-in-out 1.2s 1;
+}
+
+#donkey-loss-animation.show .donkey-loss-shadow {
+    animation: donkeyShadowPulse 1.2s ease-out forwards;
 }
 
 #app-version {
@@ -417,6 +524,39 @@ button:disabled {
     100% { transform: scale(1); }
 }
 
+@keyframes safeBurst {
+    0% { opacity: 0; transform: translate(-50%, -50%) scale(0.35) rotate(-20deg); }
+    30% { opacity: 1; }
+    100% { opacity: 0; transform: translate(-50%, -50%) scale(1.15) rotate(24deg); }
+}
+
+@keyframes safeBadge {
+    0% { opacity: 0; transform: translate(-50%, -50%) scale(0.72) translateY(10px); }
+    18% { opacity: 1; transform: translate(-50%, -50%) scale(1.06) translateY(0); }
+    68% { opacity: 1; transform: translate(-50%, -50%) scale(1) translateY(0); }
+    100% { opacity: 0; transform: translate(-50%, -50%) scale(0.96) translateY(-8px); }
+}
+
+@keyframes donkeyCardDrop {
+    0% { transform: translateX(-50%) translateY(-56px) rotate(-18deg) scale(0.92); opacity: 0; }
+    60% { transform: translateX(-50%) translateY(6px) rotate(8deg) scale(1.02); opacity: 1; }
+    100% { transform: translateX(-50%) translateY(0) rotate(0deg) scale(1); opacity: 1; }
+}
+
+@keyframes donkeyCardShake {
+    0%, 100% { transform: translateX(-50%) rotate(0deg); }
+    20% { transform: translateX(-50%) rotate(-5deg); }
+    40% { transform: translateX(-50%) rotate(4deg); }
+    60% { transform: translateX(-50%) rotate(-3deg); }
+    80% { transform: translateX(-50%) rotate(2deg); }
+}
+
+@keyframes donkeyShadowPulse {
+    0% { opacity: 0; transform: translateX(-50%) scale(0.6); }
+    60% { opacity: 1; transform: translateX(-50%) scale(1.1); }
+    100% { opacity: 0.85; transform: translateX(-50%) scale(1); }
+}
+
 /* Player Area */
 #player-area {
     height: 228px;
@@ -583,17 +723,49 @@ button:disabled {
     }
 
     .game-brand-badge-icon {
-        width: 30px;
-        height: 30px;
+        width: 38px;
+        height: 38px;
         border-radius: 8px;
     }
 
     .game-brand-badge-text strong {
-        font-size: 0.75rem;
+        font-size: 0.88rem;
     }
 
     .game-brand-badge-text span {
-        font-size: 0.56rem;
+        font-size: 0.62rem;
+    }
+
+    .safe-celebration-burst {
+        width: 200px;
+        height: 200px;
+    }
+
+    .safe-celebration-badge {
+        min-width: 160px;
+        padding: 12px 16px;
+        border-radius: 18px;
+    }
+
+    .safe-celebration-label {
+        font-size: 1.35rem;
+    }
+
+    .safe-celebration-name {
+        font-size: 0.8rem;
+    }
+
+    #donkey-loss-animation {
+        width: 132px;
+        height: 150px;
+        margin-bottom: 10px;
+    }
+
+    .donkey-loss-card {
+        width: 92px;
+        height: 128px;
+        border-radius: 14px;
+        font-size: 2.35rem;
     }
 
     #app-version {

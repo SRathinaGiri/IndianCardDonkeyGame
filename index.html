@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Indian Card Game Donkey (Bhabhi)</title>
-    <link rel="stylesheet" href="style.css?v=1.1.0">
-    <link rel="manifest" href="manifest.json?v=1.1.0">
+    <link rel="stylesheet" href="style.css?v=1.1.1">
+    <link rel="manifest" href="manifest.json?v=1.1.1">
     <link rel="icon" type="image/png" href="icon-192x192.png">
     <meta name="theme-color" content="#005000">
 </head>
@@ -67,6 +67,13 @@
                     <span>Bhabhi</span>
                 </div>
             </div>
+            <div id="safe-celebration" class="hidden" aria-hidden="true">
+                <div class="safe-celebration-burst"></div>
+                <div class="safe-celebration-badge">
+                    <span class="safe-celebration-label">SAFE!</span>
+                    <span class="safe-celebration-name"></span>
+                </div>
+            </div>
             <div id="status-message">Waiting to start...</div>
             <div id="opponents-container"></div>
 
@@ -90,11 +97,15 @@
 
     <div id="game-over-screen" class="hidden">
         <img src="icon-192x192.png" alt="Donkey game icon" class="game-over-icon">
+        <div id="donkey-loss-animation" class="hidden" aria-hidden="true">
+            <div class="donkey-loss-card">A♠</div>
+            <div class="donkey-loss-shadow"></div>
+        </div>
         <h1 id="game-over-title">Game Over!</h1>
         <p id="game-over-message"></p>
         <button id="restart-btn">Play Again</button>
     </div>
 
-    <script src="game.js?v=1.1.0"></script>
+    <script src="game.js?v=1.1.1"></script>
 </body>
 </html>

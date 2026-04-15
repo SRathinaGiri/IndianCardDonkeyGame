@@ -1,5 +1,5 @@
 // Sound assets
-const APP_VERSION = 'v1.1.0';
+const APP_VERSION = 'v1.1.1';
 
 const sounds = {
     click: new Audio('click.mp3'),
@@ -197,6 +197,29 @@ function updateStatus(message) {
     document.getElementById('status-message').textContent = message;
 }
 
+function showSafeCelebration(playerName) {
+    const overlay = document.getElementById('safe-celebration');
+    const nameEl = overlay.querySelector('.safe-celebration-name');
+    nameEl.textContent = playerName;
+    overlay.classList.remove('show', 'hidden');
+    void overlay.offsetWidth;
+    overlay.classList.add('show');
+    setTimeout(() => {
+        overlay.classList.remove('show');
+        overlay.classList.add('hidden');
+    }, 1450);
+}
+
+function setDonkeyLossAnimation(visible) {
+    const lossEl = document.getElementById('donkey-loss-animation');
+    lossEl.classList.toggle('hidden', !visible);
+    lossEl.classList.remove('show');
+    if (visible) {
+        void lossEl.offsetWidth;
+        lossEl.classList.add('show');
+    }
+}
+
 function clearAutoAdvanceTimers() {
     if (state.autoAdvanceTimeoutId) {
         clearTimeout(state.autoAdvanceTimeoutId);
@@ -330,6 +353,7 @@ function playCard(playerIndex, cardIndex) {
         player.isSafe = true;
         playSound('win');
         updateStatus(`${player.name} is safe!`);
+        showSafeCelebration(player.name);
         checkGameOver();
     }
 
@@ -519,9 +543,11 @@ function checkGameOver() {
             const goMessage = document.getElementById('game-over-message');
             if (state.donkey.isBot) {
                 goMessage.textContent = `${state.donkey.name} is the Donkey! You survived.`;
+                setDonkeyLossAnimation(false);
                 playSound('win');
             } else {
                 goMessage.textContent = `You are the Donkey!`;
+                setDonkeyLossAnimation(true);
                 playSound('error'); // Maybe another sound for losing
             }
         }, 1500);
@@ -952,6 +978,7 @@ document.getElementById('start-btn').addEventListener('click', () => {
 document.getElementById('restart-btn').addEventListener('click', () => {
     playSound('click');
     document.getElementById('game-over-screen').classList.add('hidden');
+    setDonkeyLossAnimation(false);
     document.getElementById('setup-screen').classList.remove('hidden');
 });
 
