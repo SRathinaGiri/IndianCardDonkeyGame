@@ -663,9 +663,10 @@ function renderCenterPile() {
     const containerHeight = pile.clientHeight || 220;
     const cardWidth = 106;
     const cardHeight = 144;
-    const spacing = numCards > 1 ? Math.min(82, Math.max(54, (containerWidth - cardWidth) / numCards)) : 0;
+    const spacing = numCards > 1 ? Math.min(92, Math.max(68, (containerWidth - cardWidth) / (numCards + 0.35))) : 0;
     const totalWidth = cardWidth + ((numCards - 1) * spacing);
     const startOffsetX = Math.max(0, (containerWidth - totalWidth) / 2);
+    const midIndex = (numCards - 1) / 2;
 
     for (let i = 0; i < numCards; i++) {
         const item = state.centerPile[i];
@@ -673,11 +674,13 @@ function renderCenterPile() {
         cardEl.className = 'card played-card';
 
         const baseX = startOffsetX + (i * spacing);
-        const baseTop = Math.max(0, (containerHeight - cardHeight) / 2) - 12;
+        const distanceFromMiddle = i - midIndex;
+        const arcLift = Math.abs(distanceFromMiddle) * 12;
+        const baseTop = Math.max(8, ((containerHeight - cardHeight) / 2) - 26 - arcLift);
         const scatterSeed = `${item.playerId}-${item.card.suit}-${item.card.rank}-${i}`;
-        const xJitter = Math.round(seededScatter(scatterSeed, 10));
-        const yJitter = Math.round(seededScatter(`${scatterSeed}-y`, 14));
-        const tilt = seededScatter(`${scatterSeed}-r`, 14);
+        const xJitter = Math.round(seededScatter(scatterSeed, 6));
+        const yJitter = Math.round(seededScatter(`${scatterSeed}-y`, 4));
+        const tilt = (distanceFromMiddle * 4.5) + seededScatter(`${scatterSeed}-r`, 3);
 
         cardEl.style.left = `${baseX}px`;
         cardEl.style.top = `${baseTop}px`;
