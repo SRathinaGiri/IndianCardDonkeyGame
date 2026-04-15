@@ -1,5 +1,5 @@
 // Sound assets
-const APP_VERSION = 'v1.0.7';
+const APP_VERSION = 'v1.0.8';
 
 const sounds = {
     click: new Audio('click.mp3'),
@@ -345,10 +345,6 @@ function prepareTrickResolution() {
     state.pendingContinueAction = () => {
         executeTrickResolution();
     };
-    if (state.fastMode) {
-        executePendingContinueAction();
-        return;
-    }
     startAutoAdvancePause(3);
 }
 
