@@ -1,5 +1,5 @@
 // Sound assets
-const APP_VERSION = 'v1.4.4';
+const APP_VERSION = 'v1.4.5';
 const PLAYER_STATS_KEY = 'playerCareerStats';
 
 const sounds = {
@@ -61,6 +61,15 @@ function createSuitTracker() {
         Clubs: false,
         Spades: false
     };
+}
+
+function shuffleArray(items) {
+    const copy = [...items];
+    for (let i = copy.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [copy[i], copy[j]] = [copy[j], copy[i]];
+    }
+    return copy;
 }
 
 // Rank value for comparison
@@ -142,9 +151,11 @@ function initGame() {
         if (stored) savedScores = JSON.parse(stored);
     } catch(e) {}
 
+    const shuffledBotStyles = shuffleArray(BOT_STYLES);
+
     // Create bots
     for (let i = 1; i < state.numPlayers; i++) {
-        const style = BOT_STYLES[(i - 1) % BOT_STYLES.length];
+        const style = shuffledBotStyles[(i - 1) % shuffledBotStyles.length];
         state.players.push({
             id: `player-${i}`,
             name: `Bot ${i}`,
@@ -740,6 +751,16 @@ function getPlayersRemainingToAct() {
     return Math.max(0, activePlayers - state.centerPile.length - 1);
 }
 
+function getKnownVoidPlayersForSuit(suit) {
+    let count = 0;
+    for (const player of state.players) {
+        if (!player.isSafe && state.playerVoidSuits[player.id]?.[suit]) {
+            count += 1;
+        }
+    }
+    return count;
+}
+
 function scoreLeadCard(bot, candidate, context) {
     const profile = context.profile;
     const suitCount = context.suitCounts[candidate.card.suit];
@@ -747,6 +768,7 @@ function scoreLeadCard(bot, candidate, context) {
     const rankValue = getRankValue(candidate.card.rank);
     const nextPlayer = context.nextPlayer;
     const nextPlayerKnownVoid = Boolean(nextPlayer && state.playerVoidSuits[nextPlayer.id]?.[candidate.card.suit]);
+    const knownVoidCount = getKnownVoidPlayersForSuit(candidate.card.suit);
     let score = 0;
 
     score += (13 - suitCount) * profile.voidBonus;
@@ -754,7 +776,15 @@ function scoreLeadCard(bot, candidate, context) {
     score += remainingInSuit <= 3 ? profile.trapLeadBonus : 0;
 
     if (state.voidSuits[candidate.card.suit]) {
-        score -= 24;
+        score -= 36;
+    }
+
+    if (knownVoidCount > 0) {
+        score -= knownVoidCount * 18;
+    }
+
+    if (state.voidSuits[candidate.card.suit] && context.activePlayers > 2 && nextPlayer && nextPlayer.hand.length > 3) {
+        score -= 18;
     }
 
     if (nextPlayerKnownVoid) {
@@ -783,6 +813,10 @@ function scoreLeadCard(bot, candidate, context) {
 
     if (candidate.card.suit === 'Spades' && rankValue >= getRankValue('K')) {
         score -= 10;
+    }
+
+    if (knownVoidCount > 0 && bot.hand.length >= 5 && suitCount > 1 && nextPlayer && nextPlayer.hand.length >= bot.hand.length - 1) {
+        score -= 18;
     }
 
     return score;
@@ -863,6 +897,8 @@ function chooseBotCardIndex(bot, validCards) {
         } else {
             score = scoreCutCard(bot, candidate, context);
         }
+
+        score += (Math.random() * 4) - 2;
 
         if (score > bestScore) {
             bestScore = score;
