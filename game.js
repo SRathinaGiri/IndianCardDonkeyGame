@@ -1,5 +1,5 @@
 // Sound assets
-const APP_VERSION = 'v1.4.6';
+const APP_VERSION = 'v1.4.7';
 const PLAYER_STATS_KEY = 'playerCareerStats';
 
 const sounds = {
@@ -36,6 +36,7 @@ const state = {
         'Spades': false
     }, // Track which suits have been cut by someone
     playerVoidSuits: {},
+    playerSuitDanger: {},
     discardPile: [], // Cards that have been cleared from tricks
     pendingContinueAction: null,
     autoAdvanceTimeoutId: null,
@@ -61,6 +62,23 @@ function createSuitTracker() {
         Clubs: false,
         Spades: false
     };
+}
+
+function createSuitWeights() {
+    return {
+        Hearts: 0,
+        Diamonds: 0,
+        Clubs: 0,
+        Spades: 0
+    };
+}
+
+function decayPlayerSuitDanger() {
+    for (const playerId of Object.keys(state.playerSuitDanger)) {
+        for (const suit of SUITS) {
+            state.playerSuitDanger[playerId][suit] = Math.max(0, state.playerSuitDanger[playerId][suit] - 1);
+        }
+    }
 }
 
 function shuffleArray(items) {
@@ -196,8 +214,10 @@ function initGame() {
         'Spades': false
     };
     state.playerVoidSuits = {};
+    state.playerSuitDanger = {};
     state.players.forEach(player => {
         state.playerVoidSuits[player.id] = createSuitTracker();
+        state.playerSuitDanger[player.id] = createSuitWeights();
     });
     state.discardPile = [];
     state.pendingContinueAction = null;
@@ -462,6 +482,9 @@ function playCard(playerIndex, cardIndex) {
             if (state.playerVoidSuits[player.id]) {
                 state.playerVoidSuits[player.id][state.roundSuit] = true;
             }
+            if (state.playerSuitDanger[player.id]) {
+                state.playerSuitDanger[player.id][state.roundSuit] = Math.min(6, state.playerSuitDanger[player.id][state.roundSuit] + 2);
+            }
         } else if (!state.isCut) {
             // Update highest card if follows suit and no cut yet
             if (getRankValue(card.rank) > getRankValue(state.highestCardInRound.rank)) {
@@ -551,6 +574,11 @@ function executeTrickResolution() {
                 state.playerVoidSuits[taker.id][suit] = false;
             }
         }
+        if (state.playerSuitDanger[taker.id]) {
+            for (const suit of suitsInPile) {
+                state.playerSuitDanger[taker.id][suit] = Math.max(0, state.playerSuitDanger[taker.id][suit] - 2);
+            }
+        }
 
         if (taker.isSafe && taker.hand.length > 0) {
             taker.isSafe = false; // Re-enter game
@@ -583,6 +611,7 @@ function executeTrickResolution() {
     state.highestCardInRound = null;
     state.winnerOfTrick = null;
     state.isCut = false;
+    decayPlayerSuitDanger();
 
     renderGame();
 
@@ -761,6 +790,10 @@ function getKnownVoidPlayersForSuit(suit) {
     return count;
 }
 
+function getSuitDangerForPlayer(playerId, suit) {
+    return state.playerSuitDanger[playerId]?.[suit] || 0;
+}
+
 function getActiveTurnOrderFromPlayer(playerId) {
     const startIndex = state.players.findIndex(player => player.id === playerId);
     const order = [];
@@ -851,6 +884,7 @@ function scoreLeadCard(bot, candidate, context) {
     const nextPlayer = context.nextPlayer;
     const nextPlayerKnownVoid = Boolean(nextPlayer && state.playerVoidSuits[nextPlayer.id]?.[candidate.card.suit]);
     const knownVoidCount = getKnownVoidPlayersForSuit(candidate.card.suit);
+    const nextPlayerSuitDanger = nextPlayer ? getSuitDangerForPlayer(nextPlayer.id, candidate.card.suit) : 0;
     let score = 0;
 
     score += (13 - suitCount) * profile.voidBonus;
@@ -867,6 +901,10 @@ function scoreLeadCard(bot, candidate, context) {
 
     if (state.voidSuits[candidate.card.suit] && context.activePlayers > 2 && nextPlayer && nextPlayer.hand.length > 3) {
         score -= 18;
+    }
+
+    if (nextPlayerSuitDanger > 0) {
+        score -= nextPlayerSuitDanger * 16;
     }
 
     if (nextPlayerKnownVoid) {
@@ -898,6 +936,10 @@ function scoreLeadCard(bot, candidate, context) {
     }
 
     if (knownVoidCount > 0 && bot.hand.length >= 5 && suitCount > 1 && nextPlayer && nextPlayer.hand.length >= bot.hand.length - 1) {
+        score -= 18;
+    }
+
+    if (nextPlayerSuitDanger >= 3 && context.activePlayers > 2 && nextPlayer && nextPlayer.hand.length >= 4) {
         score -= 18;
     }
 
