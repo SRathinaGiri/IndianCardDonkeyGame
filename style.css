@@ -1041,9 +1041,9 @@ button:disabled {
     #center-pile {
         width: 100%;
         max-width: calc(100% - 20px);
-        min-height: 72px;
+        min-height: 94px;
         gap: 3px;
-        padding: 4px 6px 14px;
+        padding: 6px 6px 18px;
         margin-top: 0;
     }
 

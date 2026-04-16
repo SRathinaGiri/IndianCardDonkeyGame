@@ -1,5 +1,5 @@
 // Sound assets
-const APP_VERSION = 'v1.4.3';
+const APP_VERSION = 'v1.4.4';
 const PLAYER_STATS_KEY = 'playerCareerStats';
 
 const sounds = {
