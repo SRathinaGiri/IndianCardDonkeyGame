@@ -1,5 +1,5 @@
 // Sound assets
-const APP_VERSION = 'v1.4.2';
+const APP_VERSION = 'v1.4.3';
 const PLAYER_STATS_KEY = 'playerCareerStats';
 
 const sounds = {
@@ -35,6 +35,7 @@ const state = {
         'Clubs': false,
         'Spades': false
     }, // Track which suits have been cut by someone
+    playerVoidSuits: {},
     discardPile: [], // Cards that have been cleared from tricks
     pendingContinueAction: null,
     autoAdvanceTimeoutId: null,
@@ -52,6 +53,15 @@ const BOT_STYLES = [
     { id: 'void-builder', label: 'Void Builder' },
     { id: 'opportunist', label: 'Opportunist' }
 ];
+
+function createSuitTracker() {
+    return {
+        Hearts: false,
+        Diamonds: false,
+        Clubs: false,
+        Spades: false
+    };
+}
 
 // Rank value for comparison
 function getRankValue(rank) {
@@ -174,6 +184,10 @@ function initGame() {
         'Clubs': false,
         'Spades': false
     };
+    state.playerVoidSuits = {};
+    state.players.forEach(player => {
+        state.playerVoidSuits[player.id] = createSuitTracker();
+    });
     state.discardPile = [];
     state.pendingContinueAction = null;
     clearAutoAdvanceTimers();
@@ -434,6 +448,9 @@ function playCard(playerIndex, cardIndex) {
             state.isCut = true;
             // Mark the led suit as voided (someone doesn't have it)
             state.voidSuits[state.roundSuit] = true;
+            if (state.playerVoidSuits[player.id]) {
+                state.playerVoidSuits[player.id][state.roundSuit] = true;
+            }
         } else if (!state.isCut) {
             // Update highest card if follows suit and no cut yet
             if (getRankValue(card.rank) > getRankValue(state.highestCardInRound.rank)) {
@@ -510,12 +527,19 @@ function executeTrickResolution() {
         // Trick taken by winnerOfTrick
         const takerIndex = state.players.findIndex(p => p.id === state.winnerOfTrick);
         const taker = state.players[takerIndex];
+        const suitsInPile = new Set(state.centerPile.map(item => item.card.suit));
 
         // Add all cards to taker's hand
         for (let item of state.centerPile) {
             taker.hand.push(item.card);
         }
         sortHand(taker.hand);
+
+        if (state.playerVoidSuits[taker.id]) {
+            for (const suit of suitsInPile) {
+                state.playerVoidSuits[taker.id][suit] = false;
+            }
+        }
 
         if (taker.isSafe && taker.hand.length > 0) {
             taker.isSafe = false; // Re-enter game
@@ -721,6 +745,8 @@ function scoreLeadCard(bot, candidate, context) {
     const suitCount = context.suitCounts[candidate.card.suit];
     const remainingInSuit = Math.max(0, context.remainingSuitCounts[candidate.card.suit]);
     const rankValue = getRankValue(candidate.card.rank);
+    const nextPlayer = context.nextPlayer;
+    const nextPlayerKnownVoid = Boolean(nextPlayer && state.playerVoidSuits[nextPlayer.id]?.[candidate.card.suit]);
     let score = 0;
 
     score += (13 - suitCount) * profile.voidBonus;
@@ -729,6 +755,26 @@ function scoreLeadCard(bot, candidate, context) {
 
     if (state.voidSuits[candidate.card.suit]) {
         score -= 24;
+    }
+
+    if (nextPlayerKnownVoid) {
+        let avoidSuitPenalty = 44;
+
+        if (nextPlayer.hand.length >= 5) {
+            avoidSuitPenalty += 14;
+        }
+
+        if (Math.abs(bot.hand.length - nextPlayer.hand.length) <= 2 && bot.hand.length >= 5) {
+            avoidSuitPenalty += 16;
+        }
+
+        if (context.activePlayers <= 2) {
+            avoidSuitPenalty -= 26;
+        } else if (nextPlayer.hand.length <= 3) {
+            avoidSuitPenalty -= 18;
+        }
+
+        score -= avoidSuitPenalty;
     }
 
     if (rankValue >= getRankValue('Q')) {
@@ -794,11 +840,14 @@ function scoreCutCard(bot, candidate, context) {
 }
 
 function chooseBotCardIndex(bot, validCards) {
+    const nextPlayerIndex = findNextActivePlayerIndex(bot.id);
     const context = {
         suitCounts: getSuitCounts(bot.hand),
         remainingSuitCounts: getRemainingSuitCounts(),
         profile: getBotStyleProfile(bot),
-        playersLeft: getPlayersRemainingToAct()
+        playersLeft: getPlayersRemainingToAct(),
+        activePlayers: getActivePlayersCount(),
+        nextPlayer: state.players[nextPlayerIndex]
     };
 
     let bestIndex = validCards[0].index;
