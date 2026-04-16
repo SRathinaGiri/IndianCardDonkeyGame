@@ -1,5 +1,5 @@
 // Sound assets
-const APP_VERSION = 'v1.4.5';
+const APP_VERSION = 'v1.4.6';
 const PLAYER_STATS_KEY = 'playerCareerStats';
 
 const sounds = {
@@ -761,6 +761,88 @@ function getKnownVoidPlayersForSuit(suit) {
     return count;
 }
 
+function getActiveTurnOrderFromPlayer(playerId) {
+    const startIndex = state.players.findIndex(player => player.id === playerId);
+    const order = [];
+
+    for (let step = 1; step < state.players.length; step++) {
+        const nextIndex = (startIndex + step) % state.players.length;
+        const player = state.players[nextIndex];
+        if (!player.isSafe) {
+            order.push(player);
+        }
+    }
+
+    return order;
+}
+
+function chooseSimulatedFollowCard(suitedCards, currentHighRank, playersLeftAfter) {
+    const sortedByRank = [...suitedCards].sort((a, b) => getRankValue(a.rank) - getRankValue(b.rank));
+    const losingCards = sortedByRank.filter(card => getRankValue(card.rank) <= currentHighRank);
+
+    if (losingCards.length > 0) {
+        return playersLeftAfter > 0 ? losingCards[losingCards.length - 1] : losingCards[0];
+    }
+
+    return playersLeftAfter > 0 ? sortedByRank[0] : sortedByRank[sortedByRank.length - 1];
+}
+
+function simulateLeadOutcome(bot, leadCard, context) {
+    const turnOrder = getActiveTurnOrderFromPlayer(bot.id);
+    let highestRank = getRankValue(leadCard.rank);
+    let currentWinnerId = bot.id;
+    let cardsInTrick = 1;
+    let cutPlayer = null;
+
+    for (let i = 0; i < turnOrder.length; i++) {
+        const player = turnOrder[i];
+        const suitedCards = player.hand.filter(card => card.suit === leadCard.suit);
+        const playersLeftAfter = turnOrder.length - i - 1;
+
+        if (suitedCards.length === 0) {
+            cutPlayer = player;
+            cardsInTrick += 1;
+            break;
+        }
+
+        const simulatedCard = chooseSimulatedFollowCard(suitedCards, highestRank, playersLeftAfter);
+        const simulatedRank = getRankValue(simulatedCard.rank);
+        cardsInTrick += 1;
+
+        if (simulatedRank > highestRank) {
+            highestRank = simulatedRank;
+            currentWinnerId = player.id;
+        }
+    }
+
+    let score = 0;
+
+    if (cutPlayer) {
+        if (currentWinnerId === bot.id) {
+            score -= cardsInTrick * 18;
+            score -= Math.min(28, Math.max(0, bot.hand.length - cutPlayer.hand.length) * 4);
+        } else {
+            score += 14;
+        }
+
+        if (cutPlayer.id === context.nextPlayer?.id) {
+            score -= 30;
+        }
+
+        if (cutPlayer.hand.length <= 3) {
+            score += 10;
+        } else if (cutPlayer.hand.length >= bot.hand.length - 1) {
+            score -= 14;
+        }
+    } else if (currentWinnerId === bot.id) {
+        score -= 12 + (turnOrder.length * 4);
+    } else {
+        score += 8;
+    }
+
+    return score;
+}
+
 function scoreLeadCard(bot, candidate, context) {
     const profile = context.profile;
     const suitCount = context.suitCounts[candidate.card.suit];
@@ -818,6 +900,8 @@ function scoreLeadCard(bot, candidate, context) {
     if (knownVoidCount > 0 && bot.hand.length >= 5 && suitCount > 1 && nextPlayer && nextPlayer.hand.length >= bot.hand.length - 1) {
         score -= 18;
     }
+
+    score += simulateLeadOutcome(bot, candidate.card, context);
 
     return score;
 }
