@@ -23,6 +23,7 @@ const state = {
     highestCardInRound: null, // Highest card of the led suit
     winnerOfTrick: null, // Player ID who currently holds the highest card
     isCut: false, // True if someone played a different suit
+    isFirstTurnOfGame: true,
     gameStarted: false,
     gameOver: false,
     donkey: null,
@@ -204,6 +205,7 @@ function initGame() {
     state.highestCardInRound = null;
     state.winnerOfTrick = null;
     state.isCut = false;
+    state.isFirstTurnOfGame = true;
     state.gameStarted = true;
     state.gameOver = false;
     state.donkey = null;
@@ -425,7 +427,7 @@ function startAutoAdvancePause(seconds = 3) {
 // Game Logic
 function isValidPlay(player, card) {
     // First turn of the game must be Ace of Spades
-    if (state.centerPile.length === 0 && !state.roundSuit) {
+    if (state.centerPile.length === 0 && !state.roundSuit && state.isFirstTurnOfGame) {
         // If player has A♠, they must play it
         if (player.hand.some(c => c.suit === 'Spades' && c.rank === 'A')) {
             return card.suit === 'Spades' && card.rank === 'A';
@@ -473,6 +475,7 @@ function playCard(playerIndex, cardIndex) {
         state.highestCardInRound = card;
         state.winnerOfTrick = player.id;
         state.isCut = false;
+        state.isFirstTurnOfGame = false;
     } else {
         // Check if cut
         if (card.suit !== state.roundSuit) {
