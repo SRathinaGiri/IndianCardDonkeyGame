@@ -500,16 +500,6 @@ function playCard(playerIndex, cardIndex) {
     state.centerPile.push({ card, playerId: player.id });
     renderGame();
 
-    // Check if player is safe
-    if (player.hand.length === 0 && !player.isSafe) {
-        player.isSafe = true;
-        player.safeOrder = state.players.filter(p => p.isSafe).length;
-        playSound('win');
-        updateStatus(`${player.name} is safe!`);
-        showSafeCelebration(player.name);
-        checkGameOver();
-    }
-
     if (state.gameOver) return;
 
     queueContinueAfterPlay(player);
@@ -583,10 +573,6 @@ function executeTrickResolution() {
             }
         }
 
-        if (taker.isSafe && taker.hand.length > 0) {
-            taker.isSafe = false; // Re-enter game
-        }
-
         playSound('draw');
 
         // Taker starts next round
@@ -602,6 +588,20 @@ function executeTrickResolution() {
         // Winner starts next round
         state.currentTurnIndex = winnerIndex;
     }
+
+    // Check if any active player is safe now (after taking or clearing tricks)
+    state.players.forEach(player => {
+        if (player.hand.length === 0 && !player.isSafe) {
+            player.isSafe = true;
+            player.safeOrder = state.players.filter(p => p.isSafe).length;
+            playSound('win');
+            updateStatus(`${player.name} is safe!`);
+            showSafeCelebration(player.name);
+            checkGameOver();
+        }
+    });
+
+    if (state.gameOver) return;
 
     // If the person who is supposed to start is safe, pass to next active player
     while (state.players[state.currentTurnIndex].isSafe) {
@@ -1039,19 +1039,37 @@ function chooseBotCardIndex(bot, validCards) {
 }
 
 function checkGameOver() {
+    if (state.gameOver) return;
     const activePlayers = state.players.filter(p => !p.isSafe);
-    if (activePlayers.length === 1) {
+    if (activePlayers.length <= 1) {
         state.gameOver = true;
-        state.donkey = activePlayers[0];
+
+        // If length is 0, the last two or more players became safe on the exact same trick.
+        // We'll consider the one who played last (or has the highest order) as the donkey,
+        // or just let the last person who became safe be the donkey.
+        // But traditionally, if it clears, the person who had the highest card might be the donkey.
+        // Let's just assign donkey to the last person who became safe (highest safeOrder).
 
         const safePlayers = state.players
             .filter(p => p.isSafe)
             .sort((a, b) => (a.safeOrder ?? Number.MAX_SAFE_INTEGER) - (b.safeOrder ?? Number.MAX_SAFE_INTEGER));
 
+        if (activePlayers.length === 1) {
+            state.donkey = activePlayers[0];
+            state.donkey.finishPosition = state.players.length;
+        } else {
+            // Everyone is safe. The last person to become safe is the donkey.
+            state.donkey = safePlayers[safePlayers.length - 1];
+            // Remove them from safePlayers list for finish position assignment
+            safePlayers.pop();
+            state.donkey.finishPosition = state.players.length;
+            // Un-safe them so UI knows they are the donkey
+            state.donkey.isSafe = false;
+        }
+
         safePlayers.forEach((player, index) => {
             player.finishPosition = index + 1;
         });
-        state.donkey.finishPosition = state.players.length;
 
         // Update score
         state.donkey.donkeyCount++;
