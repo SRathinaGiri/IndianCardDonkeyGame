@@ -628,6 +628,44 @@ function executeTrickResolution() {
     }
 }
 
+document.getElementById('borrow-btn').addEventListener('click', () => {
+    if (state.gameOver || state.animationsPlaying || state.currentTurnIndex !== 0) return;
+
+    const humanPlayer = state.players[0];
+    if (humanPlayer.isSafe) return;
+
+    // Must be at the start of a trick (or allowed anytime on turn, but usually before playing)
+    // Actually, user said "we can get their cards also and play with that cards".
+    // We'll allow it anytime it's their turn and they haven't played yet.
+    // If it's their turn, by definition they haven't played yet in this trick.
+
+    const nextIndex = findNextActivePlayerIndex(humanPlayer.id);
+    const nextPlayer = state.players[nextIndex];
+
+    if (!nextPlayer || nextPlayer.isSafe || nextPlayer.hand.length === 0) return;
+
+    // Transfer cards
+    playSound('draw');
+    humanPlayer.hand.push(...nextPlayer.hand);
+    nextPlayer.hand = [];
+
+    // Re-sort human hand
+    sortHand(humanPlayer.hand);
+
+    // Make next player safe immediately
+    nextPlayer.isSafe = true;
+    nextPlayer.safeOrder = state.players.filter(p => p.isSafe).length;
+    playSound('win');
+    updateStatus(`You borrowed all cards from ${nextPlayer.name}! ${nextPlayer.name} is safe!`);
+    showSafeCelebration(nextPlayer.name);
+
+    // Hide borrow button
+    document.getElementById('borrow-btn').classList.add('hidden');
+
+    checkGameOver();
+    renderGame();
+});
+
 document.getElementById('continue-btn').addEventListener('click', () => {
     if (typeof state.pendingContinueAction !== 'function') {
         return;
@@ -1407,11 +1445,21 @@ function updateActivePlayer() {
 
     document.getElementById('player-area').classList.remove('active');
 
-    if (state.currentTurnIndex === 0) {
+    const borrowBtn = document.getElementById('borrow-btn');
+    if (state.currentTurnIndex === 0 && !state.players[0].isSafe) {
         document.getElementById('player-area').classList.add('active');
+        // Check if there is an eligible next player to borrow from
+        const nextIndex = findNextActivePlayerIndex(state.players[0].id);
+        const nextPlayer = state.players[nextIndex];
+        if (nextPlayer && !nextPlayer.isSafe && nextPlayer.hand.length > 0) {
+            if (borrowBtn) borrowBtn.classList.remove('hidden');
+        } else {
+            if (borrowBtn) borrowBtn.classList.add('hidden');
+        }
         // Re-render hand to update valid plays
         renderPlayerHand();
     } else {
+        if (borrowBtn) borrowBtn.classList.add('hidden');
         const oppEl = document.getElementById(`opp-player-${state.currentTurnIndex}`);
         if (oppEl) oppEl.classList.add('active');
     }
