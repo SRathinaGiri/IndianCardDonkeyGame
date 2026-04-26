@@ -895,7 +895,7 @@ function scoreLeadCard(bot, candidate, context) {
     score += remainingInSuit <= 3 ? profile.trapLeadBonus : 0;
 
     if (state.voidSuits[candidate.card.suit]) {
-        score -= 36;
+        score -= 200;
     }
 
     if (knownVoidCount > 0) {
