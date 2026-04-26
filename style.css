@@ -701,11 +701,32 @@ button:disabled {
 .player-info {
     display: flex;
     justify-content: space-between;
+    align-items: center;
     width: 100%;
     max-width: 800px;
     margin-bottom: 10px;
     font-size: 1.2rem;
     font-weight: bold;
+}
+
+#borrow-btn {
+    padding: 5px 10px;
+    font-size: 0.9rem;
+    background: linear-gradient(135deg, #e74c3c, #c0392b);
+    color: white;
+    border: none;
+    border-radius: 20px;
+    cursor: pointer;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+    transition: transform 0.2s;
+}
+
+#borrow-btn:active {
+    transform: scale(0.95);
+}
+
+#borrow-btn.hidden {
+    display: none;
 }
 
 #player-area.active {
