@@ -1,5 +1,5 @@
 // Sound assets
-const APP_VERSION = 'v1.4.7';
+const APP_VERSION = 'v1.4.8';
 const PLAYER_STATS_KEY = 'playerCareerStats';
 
 const sounds = {
@@ -1542,7 +1542,7 @@ document.getElementById('restart-btn').addEventListener('click', () => {
     playSound('click');
     document.getElementById('game-over-screen').classList.add('hidden');
     setDonkeyLossAnimation(false);
-    document.getElementById('setup-screen').classList.remove('hidden');
+    initGame();
 });
 
 document.getElementById('app-version').textContent = APP_VERSION;
