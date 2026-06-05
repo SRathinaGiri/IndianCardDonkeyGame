@@ -1081,9 +1081,11 @@ button:disabled {
     }
 
     .played-card-label {
-        font-size: 0.72rem;
-        padding: 3px 6px;
-        bottom: -18px;
+        font-size: 0.8rem;
+        padding: 4px 7px;
+        bottom: -24px;
+        transform: translateX(-50%) scale(1.9);
+        transform-origin: top center;
     }
 
     #pile-stock {
