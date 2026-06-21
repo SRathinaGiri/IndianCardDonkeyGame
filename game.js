@@ -1,5 +1,5 @@
 // Sound assets
-const APP_VERSION = 'v1.4.10';
+const APP_VERSION = 'v1.4.11';
 const PLAYER_STATS_KEY = 'playerCareerStats';
 
 const sounds = {
@@ -1527,6 +1527,11 @@ if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
         navigator.serviceWorker.register('sw.js').then(registration => {
             console.log('SW registered: ', registration);
+            if (navigator.onLine) {
+                registration.update().catch(updateError => {
+                    console.log('SW update check failed: ', updateError);
+                });
+            }
         }).catch(registrationError => {
             console.log('SW registration failed: ', registrationError);
         });
